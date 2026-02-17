@@ -12,7 +12,7 @@ class RobotMobile:
         self.y += distance * math.sin(self.orientation)
     
     def afficher(self):
-        print(f"Position : {self.x, self.y, self.orientation}")
+    print(f"Robot position: (x={self.x}, y={self.y}, orientation en radians= {self.orientation}, angle={math.degrees(self.orientation)}°   )")
      
     def tourner(self, angle):
         self.orientation +=  (self.orientation + angle) % (2 * math.pi)
