@@ -1,5 +1,4 @@
 import math
-from turtle import distance
 from robot.moteur import Moteur
 
 class RobotMobile:
