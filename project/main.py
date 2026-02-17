@@ -21,8 +21,12 @@ dt = 1.0 # pas de temps (s)
 robot.commander(v = 1.0, omega = 0.0) # avance
 robot.mettre_a_jour(dt)
 robot.afficher()
+print(f"Nombre de robots avant : {RobotMobile.nombre_robots()}")
+
 print("Test du moteur omnidirectionnel :")
 r2 = RobotMobile(0, 0, math.pi/2, moteur_omni)
 r2.commander(vx = 1.0, vy = 0.0, omega = 0.0) # avance
 r2.mettre_a_jour(dt)
 r2.afficher()
+print(f"Nombre de robots après : {RobotMobile.nombre_robots()}")
+print((robot))
