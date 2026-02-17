@@ -12,6 +12,11 @@ Principales fonctionalités du robot
   
 Le robot lui stocke l'état (position, orientation)
 
+
+Ajout de méthodes : 
+- nombre_robots : retour le nombre de robots créés
+- moteur_valide : confirme si le type de moteur renseigné pour le moteur est bien une instance de la classe moteur
+
 ## Moteur.py 
 Le moteur = actionneur du robot
 - méthode commander : stocker les vitesses
@@ -37,11 +42,21 @@ Quelques propriétés sur le robot :
 
 ## Ajout de contrôleurs : 
 
+Les contrôleurs au niveau du terminal permettent de contrôler le robot en mettant des valeurs comme expliqué dans le prompt du terminal. 
+
+
 ## Ajout d'une vue graphique : Pygame
 
 A l'aide d'une interface graphique pygame dans la classe VuePygame, qui encapsule l'ensemble des fonctionnalités graphiques. 
-Le cercle = le robot, le segment = l'orientation
-
 => le robot appelle les mêmes méthodes, mais le comportement dépend du moteur utilisé.
 
-##
+### Réglages de l'environnement graphique
+
+**Le robot**
+
+- le robot est représenté par un petit cercle et un segment représentant l'orientation
+
+**Les obstacles**
+
+- les obstacles sont définis par des fonctions dessinerType (type= cercle, rectangle...)
+
