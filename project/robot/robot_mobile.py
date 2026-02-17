@@ -2,11 +2,11 @@ import math
 from turtle import distance
 
 class RobotMobile:
-    def __init__(self, x, y, orientation = 0.0):
+    def __init__(self, x, y, orientation = 0.0, moteur=None):
         self.x = x
         self.y = y
         self.orientation = orientation
-
+        self.moteur = moteur
     def avancer(self, distance):
         self.x += distance * math.cos(self.orientation)
         self.y += distance * math.sin(self.orientation)
@@ -25,3 +25,11 @@ class RobotMobile:
     @x.setter
     def x(self, value: float):
         self.__x = value
+
+    def commander(self, **kwargs):
+        if self.moteur is not None:
+            self.moteur.commander(**kwargs)
+    
+    def mettre_a_jour(self, dt):
+        if self.moteur is not None:
+            self.moteur.mettre_a_jour(self, dt)
