@@ -1,0 +1,16 @@
+# Python (cache et bytecode)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnement virtuel (si tu en crées un plus tard)
+venv/
+env/
+.env
+
+# Configuration VS Code
+.vscode/
+
+# Fichiers systèmes ou temporaires
+.DS_Store
+Thumbs.db
