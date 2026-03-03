@@ -2,6 +2,10 @@ from robot.robot_mobile import RobotMobile
 from robot.moteur import MoteurDifferentiel, MoteurOmnidirectionnel
 from robot.vue import VueTerminal, VuePygame
 from robot.controleur import ControleurTerminal
+from robot.controleur import ControleurClavierPygame
+from robot.obstacle import ObstacleCirculaire, ObstacleRectangulaire
+from robot.Environnement import Environnement
+from robot.plan_autocad import build_plan
 import math
 import pygame
 
@@ -36,34 +40,80 @@ import pygame
 
 # # Utilisation de la vue pour afficher le robot
 # vue.dessiner_robot(robot)
+# moteur_diff = MoteurDifferentiel()
+# # On initialise au centre de l'écran (0,0 dans le modèle)
+# robot = RobotMobile(x=0, y=0, orientation=0, moteur=moteur_diff)
 
-moteur_diff = MoteurDifferentiel()
-robot = RobotMobile(x=400, y=300, orientation=0, moteur=moteur_diff)
+# vue = VuePygame() 
+# controleur = ControleurClavierPygame() # <--- On instancie le nouveau
+
+# dt = 0.05 # Pas de temps plus petit pour plus de fluidité
+# running = True
+
+# while running:
+#     # A. Événements (pour quitter proprement)
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
+
+#     # B. Lecture instantanée des touches (non-bloquant)
+#     cmd = controleur.lire_commande()
     
-# 2. Initialisation du Contrôleur et de la Vue
-# La vue Pygame doit ouvrir la fenêtre ici
-vue = VuePygame() 
-controleur = ControleurTerminal()
+#     # C. Mise à jour du Modèle
+#     robot.commander(**cmd)
+#     robot.mettre_a_jour(dt)
+        
+#     # D. Mise à jour de la Vue
+#     vue.tick(60) 
+#     vue.dessiner_robot(robot)
 
-dt = 0.1 # Pas de temps
+print("\n=== Lancement de l'environnement ===")
+
+robot = RobotMobile(x=0, y=-15, orientation=0, moteur=MoteurDifferentiel())
+robot.afficher()
+robot.commander(v=3.0, omega=0.5)
+robot.mettre_a_jour(3.0)
+robot.afficher()
+
+env = Environnement()
+obs = ObstacleCirculaire(x=2, y=2, rayon=1)
+env.ajouter_obstacle(obs)
+env.ajouter_robot(robot)
+
+build_plan(env)
+print("Nombre d'obstacles :", len(env.obstacles))
+
+vue = VuePygame(
+    largeur=800,
+    hauteur=600,    
+    env_largeur=env.largeur,
+    env_hauteur=env.hauteur
+)
+
+controleur = ControleurClavierPygame()
+
+dt = 0.05
 running = True
 
-# 3. Boucle principale (Main Loop)
 while running:
-    # A. Gestion des événements (indispensable pour Pygame)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # B. Lecture de la commande via le contrôleur
-    cmd = controleur.lire_commande()
+    commande = controleur.lire_commande()  
+
+    if commande["v"] == 0 and commande["omega"] == 0:
+        robot.commander(v=2.0, omega=0.0)
+    else:
+        robot.commander(**commande)
+
+    env.mettre_a_jour(dt)
     
-    if cmd is not None:
-        # C. Mise à jour du Modèle
-        robot.commander(**cmd)
-        robot.mettre_a_jour(dt)
-        
-        # D. Mise à jour de la Vue
-        # On limite à 60 FPS comme sur ton image
-        vue.tick(60) 
-        vue.dessiner_robot(robot)
+    vue.dessiner_environnement(env)
+
+    pygame.display.flip()
+
+    vue.tick(20)
+
+pygame.quit()
