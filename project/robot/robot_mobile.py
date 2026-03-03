@@ -1,5 +1,4 @@
 import math
-from turtle import distance
 from robot.moteur import Moteur
 
 class RobotMobile:
@@ -10,6 +9,7 @@ class RobotMobile:
         self.y = y
         self.orientation = orientation
         self.moteur = moteur
+        self.rayon = 0.55
         # 2. On utilise la méthode statique pour valider le moteur
         if self.moteur_valide(moteur):
             self.moteur = moteur
@@ -31,7 +31,7 @@ class RobotMobile:
      
     def tourner(self, angle):
         self.orientation +=  (self.orientation + angle) % (2 * math.pi)
-
+    
     # Getter : Permet d'acceder a l'attribut depuis l'exterieur de la classe.
     @property
     def x(self) -> float:
