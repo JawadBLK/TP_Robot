@@ -32,6 +32,7 @@ class VuePygame:
             hauteur / env_hauteur
         )
 
+        self.font = pygame.font.SysFont("Arial", 32)
         self.clock = pygame.time.Clock()
 
         # --- Chargement de l'image du robot ---
@@ -49,12 +50,11 @@ class VuePygame:
             print("Attention: L'image image_robot.png n'a pas été trouvée. Affichage du cercle par défaut.")
             self.image_robot_originale = None
 
-
-
     def convertir_coordonnees(self, x, y):
         px = int(self.largeur / 2 + x * self.scale)
         py = int(self.hauteur / 2 - y * self.scale)
         return px, py
+    
     def dessiner_robot(self, robot):
         if robot is None:
             return
@@ -111,6 +111,16 @@ class VuePygame:
         # Dessiner le robot
         if env.robot:
             self.dessiner_robot(env.robot)
+
+        # Dessiner les ennemis
+        for ennemi in env.ennemis:
+            ennemi.dessiner(self)
+
+        # Affichage alerte
+        if env.alerte:
+            texte = self.font.render(env.alerte, True, (200, 0, 0))
+            rect = texte.get_rect(center=(self.largeur//2, 40))
+            self.screen.blit(texte, rect)
 
         pygame.display.flip()
 
