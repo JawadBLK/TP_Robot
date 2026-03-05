@@ -9,7 +9,7 @@ class RobotMobile:
         self.y = y
         self.orientation = orientation
         self.moteur = moteur
-        self.rayon = 0.55
+        self.rayon = 0.25
         # 2. On utilise la méthode statique pour valider le moteur
         if self.moteur_valide(moteur):
             self.moteur = moteur
