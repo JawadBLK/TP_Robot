@@ -9,7 +9,7 @@ class RobotMobile:
         self.y = y
         self.orientation = orientation
         self.moteur = moteur
-        self.rayon = 0.55
+        self.rayon = 0.25
         # 2. On utilise la méthode statique pour valider le moteur
         if self.moteur_valide(moteur):
             self.moteur = moteur
@@ -58,6 +58,5 @@ class RobotMobile:
 
     @staticmethod
     def moteur_valide(moteur):
-        """Vérifie si l'objet est une instance de la classe Moteur."""
         # On vérifie si moteur est une instance de Moteur ou d'une de ses sous-classes
         return isinstance(moteur, Moteur)
