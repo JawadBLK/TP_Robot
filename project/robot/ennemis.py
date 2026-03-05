@@ -3,15 +3,15 @@ import pygame
 
 class Ennemi:
 
-    def __init__(self, x, y, taille=0.6, angle=0):
+    def __init__(self, x, y, taille=0.2, angle=0):
         self.x = x
         self.y = y
         self.taille = taille
         self.angle = angle  # orientation en radians
-        self.portee = 6     # distance vision
+        self.portee = 3     # distance vision
         self.fov = math.pi / 3  # angle vision (60°)
         self.detecte = False
-        self.vitesse_rotation = 0.8  # radians par seconde
+        self.vitesse_rotation = 0.6  # radians par seconde
 
     def dessiner(self, vue):
 

@@ -22,11 +22,13 @@ vue = VuePygame(
 
 # 2. Construction du monde
 env.ajouter_robot(robot)
+
 build_plan(env)
 
-env.ajouter_ennemi(Ennemi(-6, -4))
-env.ajouter_ennemi(Ennemi(4, 2))
-env.ajouter_ennemi(Ennemi(8, -6))
+env.ajouter_ennemi(Ennemi(-6, -2))
+env.ajouter_ennemi(Ennemi(9, 2))
+env.ajouter_ennemi(Ennemi(3, -3))
+env.ajouter_ennemi(Ennemi(-4, 3))
 
 print("Nombre d'obstacles :", len(env.obstacles))
 print(hasattr(env, "alerte"))
