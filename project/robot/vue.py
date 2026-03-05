@@ -40,7 +40,7 @@ class VuePygame:
             dossier_vue = os.path.dirname(os.path.abspath(__file__))
             # 2. On remonte d'un cran pour aller dans le dossier project/
             dossier_project = os.path.dirname(dossier_vue)
-            # 3. On colle le nom de l'image pour avoir le chemin parfait !
+            # 3. récupère le chemin complet de l'image à partir du dossier project/
             chemin_image = os.path.join(dossier_project, "image_robot.png")
             
             self.image_robot_originale = pygame.image.load(chemin_image).convert_alpha()
@@ -71,25 +71,25 @@ class VuePygame:
             image_redimensionnee = pygame.transform.smoothscale(self.image_robot_originale, (diametre, diametre))
             
             # 3. On fait pivoter l'image selon l'orientation du robot. 
-            # Pygame tourne en degrés, on convertit donc les radians du modèle.
+            '''Attention : Pygame tourne dans le sens inverse des aiguilles d'une montre, d'où le signe négatif.'''
             angle_degres = math.degrees(robot.orientation)
             image_tournee = pygame.transform.rotate(image_redimensionnee, angle_degres)
             
             # 4. La rotation modifie la taille de la boîte (rectangle) de l'image. 
-            # On doit récupérer le nouveau rectangle et le re-centrer sur (px, py)
             rect = image_tournee.get_rect(center=(px, py))
             
-            # Dessin un fin cercle vert pour voir la hitbox de collision physique
+            # Dessine un fin cercle vert pour voir la hitbox de collision physique
             pygame.draw.circle(self.screen, (0, 255, 0), (px, py), r, 1)
 
             # 5. On "colle" l'image sur l'écran
             self.screen.blit(image_tournee, rect)
-            # Orientation
+
+            # Ligne rouge orientation du robot
             x_dir = px + int(r * math.cos(robot.orientation))
             y_dir = py - int(r * math.sin(robot.orientation))
             pygame.draw.line(self.screen, (255, 0, 0), (px, py), (x_dir, y_dir), 2)
 
-        # Sinon, on retombe sur l'affichage classique (cercle bleu)
+        # Sinon, l'affichage classique du robot (cercle bleu)
         else:
             pygame.draw.circle(self.screen, (0, 255, 0), (px, py), r, 2)
             pygame.draw.circle(self.screen, (0, 0, 255), (px, py), r - 2)
