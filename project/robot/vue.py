@@ -108,6 +108,10 @@ class VuePygame:
         for obs in env.obstacles:
             obs.dessiner(self)
 
+        # Dessiner les props décoratifs
+        for prop in env.props:
+            prop.dessiner(self)
+
         # Dessiner le robot
         if env.robot:
             self.dessiner_robot(env.robot)

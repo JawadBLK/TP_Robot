@@ -9,6 +9,7 @@ class Environnement:
         self.ennemis = []
         self.alerte = None
         self.temps_alerte = 0
+        self.props = []
 
     def ajouter_robot(self, robot):
         self.robot = robot
@@ -20,6 +21,9 @@ class Environnement:
 
     def ajouter_ennemi(self, ennemi):
         self.ennemis.append(ennemi)
+
+    def ajouter_prop(self, prop):
+        self.props.append(prop)
 
     def test_collision(self, x, y, rayon):
         for obs in self.obstacles:
@@ -98,16 +102,17 @@ class Environnement:
         # Alerte globale après boucle
         if ennemi_detecte:
             self.alerte = "DETECTION ENNEMI"
-            self.temps_alerte = 0.5
+            self.temps_alerte = 0.2
 
 def segment_intersect_rect(x1, y1, x2, y2, rect):
-    steps = 20
-    for i in range(steps + 1):
-        t = i / steps
-        x = x1 + t * (x2 - x1)
-        y = y1 + t * (y2 - y1)
+        steps = 20
+        for i in range(steps + 1):
+            t = i / steps
+            x = x1 + t * (x2 - x1)
+            y = y1 + t * (y2 - y1)
 
-        if rect.collision(x, y, 0):
-            return True
+            if rect.collision(x, y, 0):
+                return True
 
-    return False
+        return False
+
