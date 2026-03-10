@@ -29,25 +29,16 @@ class Environnement:
         for obs in self.obstacles:
             if obs.collision(x, y, rayon):
                 return True
+        for prop in self.props:          
+            if prop.collision(x, y, rayon):
+                return True
         return False
 
     def mettre_a_jour(self, dt):
         if not self.robot:
             return
 
-        old_x = self.robot.x
-        old_y = self.robot.y
-
-        self.robot.mettre_a_jour(dt)
-
-        # Si le nouveau mouvement provoque une collision, on annule
-        if self.test_collision(self.robot.x, self.robot.y, self.robot.rayon):
-            self.robot.x = old_x
-            self.robot.y = old_y
-
-        if self.robot is None:
-            return
-
+        # Sauvegarder position AVANT mouvement
         x_old = self.robot.x
         y_old = self.robot.y
 
@@ -67,24 +58,30 @@ class Environnement:
                 self.robot.commander(v=0, omega=0)
                 break
 
+        # Collisions props
+        for prop in self.props:
+            if prop.collision(self.robot.x, self.robot.y, self.robot.rayon):
+                self.robot.x = x_old
+                self.robot.y = y_old
+                self.robot.commander(v=0, omega=0)
+                break
+
         # Collisions ennemis
         ennemi_detecte = False
 
         for ennemi in self.ennemis:
             ennemi.mettre_a_jour(dt)
-            ennemi.detecte = False  # reset à chaque frame
+            ennemi.detecte = False
 
             dx = self.robot.x - ennemi.x
             dy = self.robot.y - ennemi.y
             distance = math.sqrt(dx*dx + dy*dy)
 
             if distance <= ennemi.portee:
-
                 angle_to_robot = math.atan2(dy, dx)
                 angle_diff = (angle_to_robot - ennemi.angle + math.pi) % (2*math.pi) - math.pi
 
                 if abs(angle_diff) <= ennemi.fov / 2:
-
                     blocked = False
                     for obs in self.obstacles:
                         if segment_intersect_rect(
@@ -94,12 +91,10 @@ class Environnement:
                         ):
                             blocked = True
                             break
-
                     if not blocked:
                         ennemi.detecte = True
                         ennemi_detecte = True
 
-        # Alerte globale après boucle
         if ennemi_detecte:
             self.alerte = "DETECTION ENNEMI"
             self.temps_alerte = 0.2

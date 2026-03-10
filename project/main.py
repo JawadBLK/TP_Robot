@@ -27,35 +27,66 @@ env.ajouter_robot(robot)
 
 build_plan(env)
 
-'''env.ajouter_ennemi(Ennemi(-6, -2))
-env.ajouter_ennemi(Ennemi(9, 2))
-env.ajouter_ennemi(Ennemi(3, -3))
-env.ajouter_ennemi(Ennemi(-4, 3))'''
-
 # Ennemis avec des chemins de patrouille
 ennemi1 = Ennemi(-7, -2, waypoints=[(-7, -2), (-7, -4), (-3, -4), (-3, -4), (-3, -2), (-5, -2), (-5, -4), (-7, -4)])
 env.ajouter_ennemi(ennemi1)
 
-ennemi2 = Ennemi(3, -3, waypoints=[(3, -3), (3, -4), (-1, -4), (-1, -3), (-1, -2), (3, -3)])
+ennemi2 = Ennemi(3, -3, waypoints=[(3, -3), (3, -4), (-1, -4), (-1, -3), (3, -3)])
 env.ajouter_ennemi(ennemi2)
 
-ennemi3 = Ennemi(-7, 2, waypoints=[(-7, 2), (-7, 4), (-3, 4), (-3, 2), (-3, 2), (-5, 2), (-5, 4), (-7, 2)])
+ennemi3 = Ennemi(-7, 2, waypoints=[(-7, 2), (-7, 4.2), (-3, 4.2), (-3, 2), (-3, 2), (-5, 2), (-5, 3), (-7, 2)])
 env.ajouter_ennemi(ennemi3)
 
 '''ennemi4 = Ennemi(0, 3, waypoints=[(0, 2), (3, 2), (3, 4), (0, 4)])
 env.ajouter_ennemi(ennemi4)'''
 
 # Props décoratifs
-env.ajouter_prop(Props(-6, 3.5, "bureau"))
-env.ajouter_prop(Props(-5, 3.5, "chaise"))
-env.ajouter_prop(Props(-3, 4.5, "plante"))
-env.ajouter_prop(Props(1,  2.0, "armoire", angle=math.pi/2))
+# ── Salle haut-gauche (x: -8 à -2, y: 1 à 5) ──────────────────────────
+env.ajouter_prop(Props(-6, 3.5, "bureau"))         
+env.ajouter_prop(Props(-5, 3.5, "chaise"))         
+env.ajouter_prop(Props(-3, 4.5, "plante"))         
+env.ajouter_prop(Props(-4, 2.5, "ordinateur"))
+
+# ── Salle haut-milieu (x: -2 à 4, y: 1 à 5) ───────────────────────────
+env.ajouter_prop(Props(1,  2.0, "armoire", angle=math.pi/2))  
+env.ajouter_prop(Props(-1, 4.0, "bureau"))
+env.ajouter_prop(Props(-1, 3.5, "chaise"))
+env.ajouter_prop(Props(2,  4.5, "ordinateur"))
+env.ajouter_prop(Props(3,  4.5, "lampe"))
+env.ajouter_prop(Props(0,  4.6, "plante"))
+
+# ── Salle haut-droite (x: 4 à 8, y: 1 à 5) ────────────────────────────
+env.ajouter_prop(Props(6,  4.0, "bureau"))
+env.ajouter_prop(Props(6,  3.5, "chaise"))
+env.ajouter_prop(Props(7,  2.5, "armoire"))
+env.ajouter_prop(Props(5,  4.8, "plante"))
+env.ajouter_prop(Props(7,  4.5, "caisse"))
+
+# ── Salle bas-gauche (x: -8 à -2, y: -5 à -1) ─────────────────────────
+env.ajouter_prop(Props(-3, -1.5, "bureau"))
+env.ajouter_prop(Props(-7, -4.5, "caisse"))
+env.ajouter_prop(Props(-6, -4.5, "caisse"))
+env.ajouter_prop(Props(-3, -4.5, "armoire", angle=math.pi/2))
+
+# ── Salle bas-milieu (x: -2 à 4, y: -5 à -1) ──────────────────────────
+env.ajouter_prop(Props(-1,  -1.45, "bureau"))
+env.ajouter_prop(Props(-1,  -1.35, "ordinateur"))
+env.ajouter_prop(Props(-1, -4.5, "caisse"))
+env.ajouter_prop(Props(0,  -4.5, "caisse"))
+env.ajouter_prop(Props(3,  -4.5, "plante"))
+
+# ── Salle bas-droite (x: 4 à 8, y: -5 à -1) ───────────────────────────
+env.ajouter_prop(Props(6,  -2.5, "bureau"))
+env.ajouter_prop(Props(6,  -3.0, "chaise"))
+env.ajouter_prop(Props(7,  -4.5, "armoire"))
+env.ajouter_prop(Props(5,  -4.5, "lampe"))
+env.ajouter_prop(Props(7,  -2.5, "tableau"))
 
 print("Nombre d'obstacles :", len(env.obstacles))
 print(hasattr(env, "alerte"))
 
-fps = 40
-dt = 1.0 / fps
+fps = 60
+dt = 3.0 / fps
 running = True
 
 # 3. Boucle principale

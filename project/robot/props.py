@@ -88,7 +88,7 @@ class Props:
         rect = img.get_rect(center=(int(px), int(py)))
         vue.screen.blit(img, rect)
 
-        # Contour subtil
+        # Contour
         pygame.draw.rect(vue.screen, (80, 60, 40),
                          (rect.x, rect.y, rect.width, rect.height), 1)
 
@@ -115,13 +115,15 @@ class Props:
         pygame.draw.polygon(vue.screen, couleur, points)
         pygame.draw.polygon(vue.screen, couleur_dark, points, 2)
 
-        # Petite icône texte au centre (type abrégé)
-        font_size = max(8, min(pw, ph) // 2)
-        try:
-            font = pygame.font.SysFont("segoeui", font_size)
-        except:
-            font = pygame.font.Font(None, font_size)
+# ─── Collision des props ────────────────────────────────────────────────────────
 
-        label = self.type_prop[:3].upper()
-        surf = font.render(label, True, (255, 255, 255))
-        vue.screen.blit(surf, surf.get_rect(center=(int(px), int(py))))
+    def collision(self, x, y, rayon):
+        # On vérifie si le cercle (x, y, rayon) touche le rectangle du prop
+        # Distance entre le centre du cercle et le rectangle
+        dx = abs(x - self.x) - self.w / 2
+        dy = abs(y - self.y) - self.h / 2
+        
+        dx = max(dx, 0)
+        dy = max(dy, 0)
+        
+        return math.sqrt(dx*dx + dy*dy) < rayon

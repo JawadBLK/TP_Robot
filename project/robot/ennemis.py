@@ -7,7 +7,7 @@ class Ennemi:
     def __init__(self, x, y, waypoints, taille=0.2, angle=0):
         """
         waypoints : liste de (x, y) définissant la ronde dans la salle.
-                    Ex: [(1,1), (3,1), (3,3), (1,3)]
+                    Exemple : [(1,1), (3,1), (3,3), (1,3)] pour faire un carré. 
         """
         self.x = x
         self.y = y
@@ -16,7 +16,7 @@ class Ennemi:
         self.portee = 3
         self.fov = math.pi / 2  # 90° de FOV
         self.detecte = False
-        self.vitesse = 1.5          # unités/seconde
+        self.vitesse = 0.7         # unités/seconde
         self.vitesse_rotation = 3.0 # rad/s pour tourner vers le prochain waypoint
 
         # Waypoints de ronde
