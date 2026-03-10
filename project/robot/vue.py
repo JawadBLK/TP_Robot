@@ -34,7 +34,7 @@ class VuePygame:
 
         self.clock = pygame.time.Clock()
 
-        # --- Chargement de l'image du robot ---
+        # --- Chargement de l'image du robot et du sol  ---
         try:
             # 1. On récupère le dossier où se trouve vue.py (project/robot/)
             dossier_vue = os.path.dirname(os.path.abspath(__file__))
@@ -44,10 +44,19 @@ class VuePygame:
             chemin_image = os.path.join(dossier_project, "image_robot.png")
             
             self.image_robot_originale = pygame.image.load(chemin_image).convert_alpha()
-            print("Image chargée avec succès !")
+            print("Image de robot chargée avec succès !")
         except FileNotFoundError:
             print("Attention: L'image image_robot.png n'a pas été trouvée. Affichage du cercle par défaut.")
             self.image_robot_originale = None
+
+        # --- Chargement de l'image du robot et du sol  ---   
+        try:
+            chemin_sol = os.path.join(dossier_project, "sol.png")
+            self.texture_sol = pygame.image.load(chemin_sol).convert()
+            print("Image du sol chargée avec succès !")
+        except FileNotFoundError:
+            print("Attention: L'image sol.png n'a pas été trouvée. Fond uni utilisé.")
+            self.texture_sol = None 
 
 
 
@@ -55,6 +64,7 @@ class VuePygame:
         px = int(self.largeur / 2 + x * self.scale)
         py = int(self.hauteur / 2 - y * self.scale)
         return px, py
+    
     def dessiner_robot(self, robot):
         if robot is None:
             return
@@ -101,14 +111,35 @@ class VuePygame:
         self.clock.tick(fps)
 
     def dessiner_environnement(self, env):
-        # Effacer l'écran avec un fond clair
-        self.screen.fill((245, 245, 245))
+        # 1. FOND EXTÉRIEUR (sol)
+        if self.texture_sol:
+            # On répète la texture de sol comme un calque sur tout l'écran
+            l_texture = self.texture_sol.get_width()
+            h_texture = self.texture_sol.get_height()
+            for x in range(0, self.largeur, l_texture):
+                for y in range(0, self.hauteur, h_texture):
+                    self.screen.blit(self.texture_sol, (x, y))
+        else:
+            #  Si l'image sol.png n'est pas là, on met un fond vert uni
+            self.screen.fill((120,80,50))
 
-        # Dessiner les obstacles
+        # 2. FOND INTÉRIEUR (Appartement Beige)
+        # On convertit les coordonnées des coins de l'appartement (-8, 5) en haut à gauche et (8, -5) en bas à droite
+        px_min, py_max = self.convertir_coordonnees(-8, 5)
+        px_max, py_min = self.convertir_coordonnees(8, -5)
+        
+        largeur_appart = px_max - px_min
+        hauteur_appart = py_min - py_max
+
+        rect_appart = pygame.Rect(px_min, py_max, largeur_appart, hauteur_appart)
+        pygame.draw.rect(self.screen, (245, 240, 220), rect_appart)
+
+
+        # 3. Obstacles
         for obs in env.obstacles:
             obs.dessiner(self)
 
-        # Dessiner le robot
+        # 4. Robot
         if env.robot:
             self.dessiner_robot(env.robot)
 
@@ -122,8 +153,8 @@ class VuePygame:
         longueur_px = int(largeur * self.scale)
         epaisseur_px = max(2, int(0.1 * self.scale)) # Épaisseur visuelle du battant
         
-        # 3. On calcule où se termine la porte (trigonométrie classique)
-        # Attention : l'axe Y de Pygame est inversé vers le bas, d'où le "py -"
+        # 3. On calcule où se termine la porte
+        '''Attention : l'axe Y de Pygame est inversé vers le bas, d'où le "py -"''' 
         fin_x = px + longueur_px * math.cos(angle_rad)
         fin_y = py - longueur_px * math.sin(angle_rad)
         
