@@ -1,62 +1,39 @@
-Cours Robotique M2 Data IA - Marie-Jawad-Quentin
+# 🤖 Simulation de Robot Mobile 🤖
+-----------------------------------------------------------------------------------------------------------------------------------------------
+##  Description du projet
+Ce projet est un simulateur 2D interactif de robot mobile développé en Python. Il a été réalisé dans le cadre du cours de **Programmation Orientée Objet (POO) à destination de la robotique** (Master Data et IA -  Université Catholique de Lille, Année 2025-2026). 
 
+Ce simulateur a pour objectif de détecter des ennemis.
+Le robot doit aller à la recherche des ennemis, il connait le nombre d'ennemis dès le début. Si il détecte un ennemi, l'ennemi est neutralisé et inversement si le robot est détecté le robot est neutralisé par l'ennemi.
 
-## Robot_mobile.py 
-Principales fonctionalités du robot
-- méthode avancer > distance en mètre
-- méthode afficher > retourne la position et l'orientation
-- méthode tourner > avec un angle en radian 
-- getter/setter de la position
+----------------------------------------------------------  FONCTIONNALITES -----------------------------------------------------------------------
 
-  >> robot(position x, position y, orientation=angle en radian,moteur=None)
+Le simulateur intègre les fonctionnalités suivantes :
+* Moteur Physique & Cinématique : Simulation des déplacements d'un robot (moteur différentiel ou omnidirectionnel) calculés de manière indépendante.
+* Environnement Interactif : Le robot évolue dans un plan complet type "Local avec plusieurs pièces" généré dynamiquement, avec la gestion des matériaux (béton, plâtre, portes en bois ouvertes ou fermées).
+* Ennemis autonomes : des ennemis sont représentés par des hexagones verts et également un angle de vision de 90°. Les ennemis se déplacent selon des coordonnées de points dans une pièce mais également de l'extérieur du local.
+* Gestion des Collisions : Le moteur physique empêche le robot de traverser les murs, les portes fermées et les humains, tout en lui permettant de franchir les portes ouvertes.
+* Rendu Graphique : Visualisation en temps réel via la bibliothèque `pygame`, avec un suivi du robot (représenté par un visuel personnalisé de R2D2).
+* Contrôle Utilisateur : Pilotage fluide du robot au clavier grâce à un contrôleur dédié.
+
   
-Le robot lui stocke l'état (position, orientation)
+-----------------------------------------------------------------------------------------------------------------------------------------------
+##  Membres du Groupe
+* Marie Willeman
+* Quentin Rajski
+* Jawad Belkaid
 
+----------------------------------------------------------  LANCEMENT DU SIMULATEUR ---------------------------------------------------------------
 
-Ajout de méthodes : 
-- nombre_robots : retour le nombre de robots créés
-- moteur_valide : confirme si le type de moteur renseigné pour le moteur est bien une instance de la classe moteur
+## Dépendances nécessaires
+Pour faire tourner ce projet, vous aurez besoin de Python 3.x et de la bibliothèque Pygame.
+Vous pouvez l'installer via la commande :
+`pip install pygame`
 
-## Moteur.py 
-Le moteur = actionneur du robot
-- méthode commander : stocker les vitesses
-- méthode mettre_a_jour : position selon la vitesse et la direction (orientation)
-
-Le moteur applique la cinématique et la dynamique. 
-
-**2 types de moteurs**
-
-- **différentiel** : vitesse linéaire et vitesse angulaire > **le robot avance uniquement dans la direction de son orientation et peut tourner simultanément**
-  >>MoteurDifferentiel (v=vitesse linéaire, omega=vitesse angulaire)
-
-
-- **omnidirectionnel**  : vitesse dans la direction avant du robot, vitesse dans le direction latérale, vitesse angulaire > **robot se déplacer dans toutes les directions, indépendamment de son orientation**
-  >>MoteurOmnidirectionnel(vx= vitesse direction avant, vy = vitesse direction latérale, omega =vitesse angulaire)
-
-## Polymorphisme par composition : 
-
-Quelques propriétés sur le robot : 
-- le même robot peut être équipé de moteurs différents,
-- le comportement du robot change sans modifier sa classe,
-- le choix du moteur détermine le type de déplacement
-
-## Ajout de contrôleurs : 
-
-Les contrôleurs au niveau du terminal permettent de contrôler le robot en mettant des valeurs comme expliqué dans le prompt du terminal. 
-
-
-## Ajout d'une vue graphique : Pygame
-
-A l'aide d'une interface graphique pygame dans la classe VuePygame, qui encapsule l'ensemble des fonctionnalités graphiques. 
-=> le robot appelle les mêmes méthodes, mais le comportement dépend du moteur utilisé.
-
-### Réglages de l'environnement graphique
-
-**Le robot**
-
-- le robot est représenté par un petit cercle et un segment représentant l'orientation
-
-**Les obstacles**
-
-- les obstacles sont définis par des fonctions dessinerType (type= cercle, rectangle...)
-
+## Instructions pour lancer la simulation
+1. Clonez ce dépôt GitHub sur votre machine locale.
+2. Assurez-vous d'avoir installé les dépendances requises.
+3. Ouvrez un terminal à la racine du projet.
+4. Exécutez le script principal avec la commande :
+`python main.py`
+5. Utilisez les flèches directionnelles de votre clavier pour piloter le robot dans l'appartement !
