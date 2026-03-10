@@ -1,4 +1,4 @@
-# 🤖🪖 Simulation de Détection d'ennemis militaires 🤖🪖
+# 🤖🪖 Jeu de Détection d'ennemis militaires 🤖🪖
 -----------------------------------------------------------------------------------------------------------------------------------------------
 ##  Description du projet
 Ce projet est un simulateur 2D interactif de robot mobile développé en Python. Il a été réalisé dans le cadre du cours de **Programmation Orientée Objet (POO) à destination de la robotique** (Master Data et IA -  Université Catholique de Lille, Année 2025-2026). 
