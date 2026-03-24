@@ -57,11 +57,23 @@ class VuePygame:
             print("Attention: L'image image_robot.png n'a pas été trouvée. Affichage du cercle par défaut.")
             self.image_robot_originale = None
 
+        # --- Chargement de l'image du robot et du sol  ---   
+        try:
+            chemin_sol = os.path.join(dossier_project, "sol.png")
+            self.texture_sol = pygame.image.load(chemin_sol).convert()
+            print("Image du sol chargée avec succès !")
+        except FileNotFoundError:
+            print("Attention: L'image sol.png n'a pas été trouvée. Fond uni utilisé.")
+            self.texture_sol = None 
+
     def convertir_coordonnees(self, x, y):
         px = int(self.largeur / 2 + x * self.scale)
         py = int(self.hauteur_jeu / 2 - y * self.scale)
         return px, py
     
+
+
+# ──────────────────────────────────────── AFFICHAGE ROBOT  ────────────────────────────────────────
     def dessiner_robot(self, robot):
         if robot is None:
             return
@@ -107,6 +119,9 @@ class VuePygame:
     def tick(self, fps=60):
         self.clock.tick(fps)
 
+
+
+ # ──────────────────────────────────────── CONSOLE SUIVI JEU  ────────────────────────────────────────
     def _draw_card(self, x, y, w, h, couleur_bord=(50, 80, 120), couleur_fond=(22, 28, 42)):
         """Dessine une carte avec fond sombre et bordure colorée arrondie."""
         pygame.draw.rect(self.screen, couleur_fond, (x, y, w, h), border_radius=6)
@@ -206,36 +221,62 @@ class VuePygame:
         self.screen.blit(label_fps,  rect_fps_label)
         self.screen.blit(valeur_fps, rect_fps_val)
 
-    def dessiner_environnement(self, env, temps_ecoule=0.0):
-        # Effacer la zone de jeu uniquement (pas la console)
-        pygame.draw.rect(self.screen, (245, 245, 245), (0, 0, self.largeur, self.hauteur_jeu))
 
-        # Dessiner les obstacles
+
+ # ──────────────────────────────────────── ENVIRONNEMENT : affichage sol, console ────────────────────────────────────────
+    def dessiner_environnement(self, env, temps_ecoule=0.0):
+         # 1. FOND EXTÉRIEUR (sol)
+        if self.texture_sol:
+            # On répète la texture de sol comme un calque sur tout l'écran
+            l_texture = self.texture_sol.get_width()
+            h_texture = self.texture_sol.get_height()
+            for x in range(0, self.largeur, l_texture):
+                for y in range(0, self.hauteur, h_texture):
+                    self.screen.blit(self.texture_sol, (x, y))
+        else:
+            #  Si l'image sol.png n'est pas là, on met un fond vert uni
+            self.screen.fill((120,80,50))
+
+        # 2. FOND INTÉRIEUR (Fond Beige)
+        # On convertit les coordonnées des coins de l'appartement (-8, 5) en haut à gauche et (8, -5) en bas à droite
+        px_min, py_max = self.convertir_coordonnees(-8, 5)
+        px_max, py_min = self.convertir_coordonnees(8, -5)
+        
+        largeur_appart = px_max - px_min
+        hauteur_appart = py_min - py_max
+
+        rect_appart = pygame.Rect(px_min, py_max, largeur_appart, hauteur_appart)
+        pygame.draw.rect(self.screen, (245, 240, 220), rect_appart)
+
+        # 3. Dessiner les obstacles
         for obs in env.obstacles:
             obs.dessiner(self)
 
-        # Dessiner les props décoratifs
+        # 4. Dessiner les props décoratifs
         for prop in env.props:
             prop.dessiner(self)
 
-        # Dessiner le robot
+        # 5. Dessiner le robot
         if env.robot:
             self.dessiner_robot(env.robot)
 
-        # Dessiner les ennemis
+        # 6. Dessiner les ennemis
         for ennemi in env.ennemis:
             ennemi.dessiner(self)
 
-        # Alerte en haut de la zone de jeu
+        # 7. Alerte en haut de la zone de jeu
         if env.alerte:
             texte = self.font.render(env.alerte, True, (200, 0, 0))
             rect = texte.get_rect(center=(self.largeur // 2, 40))
             self.screen.blit(texte, rect)
 
-        # Console en bas
+        # 8. Console en bas
         self.dessiner_console(env, temps_ecoule)
 
         pygame.display.flip()
+
+
+ # ──────────────────────────────────────── PORTE ────────────────────────────────────────
 
     def dessiner_porte(self, x, y, angle_rad=0, largeur=1.5):
         # 1. On récupère le point d'attache de la porte en pixels
