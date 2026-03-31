@@ -9,25 +9,24 @@ class Props:
     """
 
     TYPES = {
-        "bureau":    {"w": 1.2, "h": 0.6, "couleur": (139, 90,  43),  "emoji": "🗃"},
-        "chaise":    {"w": 0.4, "h": 0.4, "couleur": (160, 120, 60),  "emoji": "🪑"},
-        "plante":    {"w": 0.3, "h": 0.3, "couleur": (34,  139, 34),  "emoji": "🌿"},
-        "caisse":    {"w": 0.5, "h": 0.5, "couleur": (180, 140, 80),  "emoji": "📦"},
-        "armoire":   {"w": 0.6, "h": 1.0, "couleur": (101, 67,  33),  "emoji": "🗄"},
-        "ordinateur":{"w": 0.5, "h": 0.4, "couleur": (50,  50,  80),  "emoji": "💻"},
-        "lampe":     {"w": 0.2, "h": 0.2, "couleur": (255, 220, 80),  "emoji": "💡"},
-        "tableau":   {"w": 0.8, "h": 0.5, "couleur": (200, 180, 140), "emoji": "🖼"},
+        "bureau":    {"w": 1.2, "h": 0.6, "couleur": (139, 90,  43)},
+        "chaise":    {"w": 0.4, "h": 0.4, "couleur": (160, 120, 60)},
+        "plante":    {"w": 0.3, "h": 0.3, "couleur": (34,  139, 34)},
+        "caisse":    {"w": 0.5, "h": 0.5, "couleur": (180, 140, 80)},
+        "armoire":   {"w": 0.6, "h": 1.0, "couleur": (101, 67,  33)},
+        "ordinateur":{"w": 0.5, "h": 0.4, "couleur": (50,  50,  80)},
+        "lampe":     {"w": 0.2, "h": 0.2, "couleur": (255, 220, 80)},
+        "tableau":   {"w": 0.8, "h": 0.5, "couleur": (200, 180, 140)},
     }
 
     # Cache partagé entre toutes les instances
     _image_cache = {}
 
-    def __init__(self, x, y, type_prop="caisse", angle=0, image_path=None):
+    def __init__(self, x, y, type_prop="caisse", angle=0):
         """
         x, y        : position centre en coordonnées monde
         type_prop   : clé dans TYPES (taille + couleur de secours)
         angle       : rotation en radians
-        image_path  : chemin vers une image PNG/JPG (optionnel)
         """
         self.x = x
         self.y = y
@@ -36,26 +35,8 @@ class Props:
         self.info = self.TYPES[self.type_prop]
         self.w = self.info["w"]
         self.h = self.info["h"]
+        self._image_surface=None
 
-        # Chargement image
-        self._image_path = image_path
-        self._image_surface = None
-        if image_path and os.path.exists(image_path):
-            self._charger_image(image_path)
-
-    # ─── Chargement image ────────────────────────────────────────────────────────
-
-    def _charger_image(self, path):
-        if path in Props._image_cache:
-            self._image_surface = Props._image_cache[path]
-        else:
-            try:
-                img = pygame.image.load(path).convert_alpha()
-                Props._image_cache[path] = img
-                self._image_surface = img
-            except Exception as e:
-                print(f"[Props] Impossible de charger '{path}' : {e}")
-                self._image_surface = None
 
     # ─── Dessin ──────────────────────────────────────────────────────────────────
 
@@ -127,3 +108,31 @@ class Props:
         dy = max(dy, 0)
         
         return math.sqrt(dx*dx + dy*dy) < rayon
+    # Capteur Lidar : intersection avec un rayon
+    def intersection(self, ox, oy, dx, dy, max_range):
+        """Calcule l'intersection avec un rayon (Lidar) en traitant le prop comme un rectangle."""
+        t_min = 0.0
+        t_max = max_range
+        
+        # Approximation : on traite le prop (même tourné) comme une boîte englobante simple pour le Lidar
+        x_min = self.x - self.w / 2
+        x_max = self.x + self.w / 2
+        y_min = self.y - self.h / 2
+        y_max = self.y + self.h / 2
+
+        for o, d, mn, mx in ((ox, dx, x_min, x_max), (oy, dy, y_min, y_max)):
+            if abs(d) < 1e-8:
+                if o < mn or o > mx:
+                    return None
+            else:
+                t1 = (mn - o) / d
+                t2 = (mx - o) / d
+                t1, t2 = min(t1, t2), max(t1, t2)
+                t_min = max(t_min, t1)
+                t_max = min(t_max, t2)
+                if t_min > t_max:
+                    return None
+                    
+        if 0 < t_min <= max_range:
+            return t_min
+        return None

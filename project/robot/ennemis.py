@@ -27,12 +27,17 @@ class Ennemi:
         # Animation
         self._temps = random.uniform(0, math.pi * 2)
         self._particules = []
-
+        self.historique_chaleur = []
+        self.temps_stun = 0.0  # Chronomètre d'étourdissement
     # ─── Mise à jour ────────────────────────────────────────────────────────────
 
     def mettre_a_jour(self, dt):
         self._temps += dt
-
+        # --- GESTION DU STUN (FLASHBANG) ---
+        if self.temps_stun > 0:
+            self.temps_stun -= dt
+            self.detecte = False
+            return
         # Waypoint cible
         cible = self.waypoints[self.waypoint_index]
         dx = cible[0] - self.x
@@ -72,6 +77,18 @@ class Ennemi:
             p['y'] += p['vy'] * dt
             p['vie'] -= dt
         self._particules = [p for p in self._particules if p['vie'] > 0]
+    
+    #--- Dépôt et refroidissement de la chaleur ---
+        # 1. L'ennemi laisse une trace chaude (1.0) à sa position actuelle
+        self.historique_chaleur.append({'x': self.x, 'y': self.y, 'chaleur': 1.0})
+        
+        # 2. La chaleur se dissipe avec le temps
+        vitesse_refroidissement = 0.5 * dt # trace plus ou moins longue
+        for trace in self.historique_chaleur:
+            trace['chaleur'] -= vitesse_refroidissement
+            
+        # 3. On nettoie les traces devenues froides
+        self.historique_chaleur = [t for t in self.historique_chaleur if t['chaleur'] > 0]
 
     def _emettre_particule(self):
         angle_rand = random.uniform(0, 2 * math.pi)
@@ -95,6 +112,8 @@ class Ennemi:
         self._dessiner_particules(vue)
 
     def _dessiner_cone_vision(self, vue):
+        if self.temps_stun > 0:
+            return  # Pas de vision si étourdi !
         px, py = vue.convertir_coordonnees(self.x, self.y)
         base_color = (255, 60, 60) if self.detecte else (255, 220, 50)
         nb_couches = 6

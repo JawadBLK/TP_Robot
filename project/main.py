@@ -1,5 +1,8 @@
+import sys
+
 import pygame
 import math
+import random
 from robot.robot_mobile import RobotMobile
 from robot.moteur import MoteurDifferentiel
 from robot.controleur import ControleurClavierPygame
@@ -8,6 +11,8 @@ from robot.Environnement import Environnement
 from robot.plan_autocad import build_plan
 from robot.ennemis import Ennemi
 from robot.props import Props
+from robot.capteurs import Lidar,CapteurThermique
+from robot.cartographie import Cartographie
 
 # ── 1. Initialisation MVC ──────────────────────────────────────────────
 robot = RobotMobile(x=-8.5, y=0, orientation=0, moteur=MoteurDifferentiel())
@@ -22,12 +27,28 @@ vue = VuePygame(
     env_hauteur=env.hauteur
 )
 
-# ── 2. Construction du monde ──────────────────────────────────────────────
+# ── 2. Ajout des capteurs ──────────────────────────────────────────────
+# ... création du Lidar ...
+lidar = Lidar(robot, nb_rayons=180, portee_max=6.0)
+robot.ajouter_capteur(lidar)
+
+# --- Capteur thermique ---
+thermique = CapteurThermique(robot, portee=6.0)
+robot.ajouter_capteur(thermique)    
+
+# Interrupteur pour l'affichage thermique
+afficher_thermique = False
+
+carto = Cartographie(950, 650)
+
+mode_vue = "NORMAL"  # Modes : "NORMAL", "LIDAR", "CARTO"
+
+# ── 3. Construction du monde ──────────────────────────────────────────────
 env.ajouter_robot(robot)
 
 build_plan(env)
 
-# ── 2.1 Ennemis avec des chemins de patrouille ──────────────────────────
+# ── 3.1 Ennemis avec des chemins de patrouille ──────────────────────────
 ennemi1 = Ennemi(-7, -2, waypoints=[(-7, -2), (-7, -4), (-3, -4), (-3, -4), (-3, -2), (-5, -2), (-5, -4), (-7, -4)])
 env.ajouter_ennemi(ennemi1)
 
@@ -40,14 +61,14 @@ env.ajouter_ennemi(ennemi3)
 ennemi4 = Ennemi(20, 0, waypoints=[(20, 0), (9, 6), (-9, 6), (-9, 0), (7, 0), (-9, 0), (-9, -6), (9, -6), (20, 0)])
 env.ajouter_ennemi(ennemi4)
 
-# ── 2.2 Props décoratifs ────────────────────────────────────────────────────
-# ── 2.2.1 Salle haut-gauche (x: -8 à -2, y: 1 à 5) ──────────────────────────
+# ── 3.2 Props décoratifs ────────────────────────────────────────────────────
+# ── 3.2.1 Salle haut-gauche (x: -8 à -2, y: 1 à 5) ──────────────────────────
 env.ajouter_prop(Props(-6, 3.5, "bureau"))         
 env.ajouter_prop(Props(-5, 3.5, "chaise"))         
 env.ajouter_prop(Props(-3, 4.5, "plante"))         
 env.ajouter_prop(Props(-4, 2.5, "ordinateur"))
 
-# ── 2.2.2 Salle haut-milieu (x: -2 à 4, y: 1 à 5) ───────────────────────────
+# ── 3.2.2 Salle haut-milieu (x: -2 à 4, y: 1 à 5) ───────────────────────────
 env.ajouter_prop(Props(1,  2.0, "armoire", angle=math.pi/2))  
 env.ajouter_prop(Props(-1, 4.0, "bureau"))
 env.ajouter_prop(Props(-1, 3.5, "chaise"))
@@ -55,27 +76,27 @@ env.ajouter_prop(Props(2,  4.5, "ordinateur"))
 env.ajouter_prop(Props(3,  4.5, "lampe"))
 env.ajouter_prop(Props(0,  4.6, "plante"))
 
-# ── 2.2.3 Salle haut-droite (x: 4 à 8, y: 1 à 5) ────────────────────────────
+# ── 3.2.3 Salle haut-droite (x: 4 à 8, y: 1 à 5) ────────────────────────────
 env.ajouter_prop(Props(6,  4.0, "bureau"))
 env.ajouter_prop(Props(6,  3.5, "chaise"))
 env.ajouter_prop(Props(7,  2.5, "armoire"))
 env.ajouter_prop(Props(5,  4.8, "plante"))
 env.ajouter_prop(Props(7,  4.5, "caisse"))
 
-# ── 2.2.4 Salle bas-gauche (x: -8 à -2, y: -5 à -1) ─────────────────────────
+# ── 3.2.4 Salle bas-gauche (x: -8 à -2, y: -5 à -1) ─────────────────────────
 env.ajouter_prop(Props(-3, -1.5, "bureau"))
 env.ajouter_prop(Props(-7, -4.5, "caisse"))
 env.ajouter_prop(Props(-6, -4.5, "caisse"))
 env.ajouter_prop(Props(-3, -4.5, "armoire", angle=math.pi/2))
 
-# ── 2.2.5 Salle bas-milieu (x: -2 à 4, y: -5 à -1) ──────────────────────────
+# ── 3.2.5 Salle bas-milieu (x: -2 à 4, y: -5 à -1) ──────────────────────────
 env.ajouter_prop(Props(-1,  -1.45, "bureau"))
 env.ajouter_prop(Props(-1,  -1.35, "ordinateur"))
 env.ajouter_prop(Props(-1, -4.5, "caisse"))
 env.ajouter_prop(Props(0,  -4.5, "caisse"))
 env.ajouter_prop(Props(3,  -4.5, "plante"))
 
-# ── 2.2.6 Salle bas-droite (x: 4 à 8, y: -5 à -1) ───────────────────────────
+# ── 3.2.6 Salle bas-droite (x: 4 à 8, y: -5 à -1) ───────────────────────────
 env.ajouter_prop(Props(6,  -2.5, "bureau"))
 env.ajouter_prop(Props(6,  -3.0, "chaise"))
 env.ajouter_prop(Props(7,  -4.5, "armoire"))
@@ -86,30 +107,104 @@ print("Nombre d'obstacles :", len(env.obstacles))
 print(hasattr(env, "alerte"))
 
 fps = 80
-dt = 4.0 / fps
+clock = pygame.time.Clock()
+#dt = 4.0 / fps
 running = True
 temps_ecoule = 0.0  # en secondes
 
-# 3. Boucle principale
+# ── Boucle de jeu ──────────────────────────────────────────────
 while running:
+    dt = clock.tick(fps) / 1000.0
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        # --- CHANGEMENT DE VUE ---
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                mode_vue = "NORMAL"
+            elif event.key == pygame.K_2:
+                mode_vue = "LIDAR"
+            elif event.key == pygame.K_3:
+                mode_vue = "CARTO"
+            elif event.key == pygame.K_t: 
+                afficher_thermique = not afficher_thermique
+            elif event.key == pygame.K_SPACE:
+                env.lancer_flashbang()
+        # -------------------------------
 
-    # 3.1 Récupérer les commandes
-    commande = controleur.lire_commande()
-    env.robot.commander(**commande)
-    if commande["v"] == 0 and commande["omega"] == 0:
-        robot.commander(v=0.0, omega=0.0)
+    # --- MISE À JOUR PHYSIQUE (Seulement si en cours) ---
+    if env.etat_partie == "EN_COURS":
+        commande = controleur.lire_commande()
+        if commande:
+            robot.commander(**commande)
+            
+        env.mettre_a_jour(dt)
+        temps_ecoule += dt
+        
+        lidar.read(env)
+        thermique.read(env)
+        carto.mettre_a_jour(vue, lidar)
+
+    # --- AJOUT AFFICHAGE MODULABLE ---
+    if mode_vue == "CARTO":
+        # Mode 3 : Vue cartographique avec rayons du Lidar, carte thermique et console
+        carto.dessiner(vue.screen)
+        if afficher_thermique:
+            thermique.draw(vue)
+        vue.dessiner_robot(env.robot)
+        vue.dessiner_console(env, temps_ecoule)
     else:
-        robot.commander(**commande)
+        # Modes 1 et 2 : Plan d'architecte classique
+        vue.dessiner_environnement(env, temps_ecoule)
+        
+        # Dessine les obstacles par-dessus le plan d'architecte
+        for obs in env.obstacles:
+            obs.dessiner(vue)
+            
+        # Si on est en Mode 2, on superpose les rayons du Lidar
+        if mode_vue == "LIDAR":
+            lidar.draw(vue)
+        if afficher_thermique:
+            thermique.draw(vue)
+    if hasattr(env, 'temps_effet_flash') and env.temps_effet_flash > 0:
+        # 1. Tremblement et Zoom (Bloom)
+        intensite = 15.0 
+        shake_x = int(random.uniform(-1, 1) * intensite * env.temps_effet_flash)
+        shake_y = int(random.uniform(-1, 1) * intensite * env.temps_effet_flash)
+        bloom = 1.0 + (0.05 * env.temps_effet_flash)
+        
+        capture = vue.screen.copy()
+        vue.screen.fill((0, 0, 0))
+        
+        p_surf = pygame.transform.scale(capture, (int(900 * bloom), int(650 * bloom)))
+        p_rect = p_surf.get_rect(center=(450 + shake_x, 325 + shake_y))
+        vue.screen.blit(p_surf, p_rect)
+        
+        # 2. Blanchiment (Whiteout)
+        alpha = int(255 * min(1.0, env.temps_effet_flash / 0.3))
+        white_surf = pygame.Surface((850, 650), pygame.SRCALPHA)
+        white_surf.fill((255, 255, 255, alpha))
+        vue.screen.blit(white_surf, (0, 0))
 
-    # 3.2 Mettre à jour la physique et gérer les collisions
-    env.mettre_a_jour(dt)
-    temps_ecoule += dt
-    
-    # 3.3 Afficher le nouvel état
-    vue.dessiner_environnement(env, temps_ecoule)
-    vue.tick(fps)
+    # --- ÉCRAN DE FIN ---
+    if env.etat_partie != "EN_COURS":
+        overlay = pygame.Surface((850, 650), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 200))
+        vue.screen.blit(overlay, (0, 0))
+        
+        f_titre = pygame.font.SysFont("Courier New", 50, bold=True)
+        f_info = pygame.font.SysFont("Courier New", 20)
+        
+        if env.etat_partie == "VICTOIRE":
+            txt = f_titre.render("VICTOIRE !", True, (50, 255, 50))
+            sub = f_info.render("Ennemis maîtrisés. Appuyez sur ECHAP.", True, (255, 255, 255))
+        else:
+            txt = f_titre.render("ÉCHEC CRITIQUE", True, (255, 50, 50))
+            sub = f_info.render("Vous avez été détecté. Appuyez sur ECHAP.", True, (255, 255, 255))
+            
+        vue.screen.blit(txt, txt.get_rect(center=(425, 325 - 20)))
+        vue.screen.blit(sub, sub.get_rect(center=(425, 325 + 30)))
+    #image à l'écran
+    pygame.display.flip()
 
 pygame.quit()
