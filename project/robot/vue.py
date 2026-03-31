@@ -162,30 +162,33 @@ class VuePygame:
         self.screen.blit(label_temps, (32, y0 + 11))
         self.screen.blit(valeur_temps, (18, y0 + 26))
 
-        # ── SECTION CENTRE-GAUCHE : Compteur ennemis + jauge ──────────────────
-        nb_total   = len(env.ennemis)
-        nb_alertes = sum(1 for e in env.ennemis if e.detecte)
-        ratio      = (nb_alertes / nb_total) if nb_total > 0 else 0
+        # ── SECTION CENTRE-GAUCHE : Compteur ennemis NEUTRALISÉS ──────────────
+        nb_total = len(env.ennemis)
+        
+        # On compte ceux qui ont le chrono de stun actif (neutralisés)
+        nb_neutralises = sum(1 for e in env.ennemis if hasattr(e, 'temps_stun') and e.temps_stun > 0)
+        ratio = (nb_neutralises / nb_total) if nb_total > 0 else 0
 
-        couleur_compteur = (255, 80, 80) if nb_alertes > 0 else (80, 210, 110)
-        bord_card_enn    = (120, 30, 30) if nb_alertes > 0 else (30, 90, 50)
+        # Couleurs : gris si 0, vert si on a commencé à en neutraliser
+        couleur_compteur = (80, 210, 110) if nb_neutralises > 0 else (150, 150, 150)
+        bord_card_enn    = (30, 90, 50) if nb_neutralises > 0 else (50, 80, 120)
+        
         self._draw_card(175, y0 + 6, 170, H - 14, couleur_bord=bord_card_enn)
-
         pygame.draw.circle(self.screen, couleur_compteur, (187, y0 + 18), 4)
-        label_enn = self.font_label.render("ENNEMIS EN ALERTE", True, (70, 110, 170))
-        valeur_enn = self.font_hud.render(f"{nb_alertes} / {nb_total}", True, couleur_compteur)
+        
+        # Changement du texte
+        label_enn = self.font_label.render("ENNEMIS NEUTRALISÉS", True, (70, 110, 170))
+        valeur_enn = self.font_hud.render(f"{nb_neutralises} / {nb_total}", True, couleur_compteur)
         self.screen.blit(label_enn, (197, y0 + 11))
         self.screen.blit(valeur_enn, (183, y0 + 26))
 
-        # Mini jauge de menace
+        # Mini jauge de progression
         jauge_x, jauge_y = 183, y0 + H - 18
         jauge_w = 154
         pygame.draw.rect(self.screen, (30, 35, 50), (jauge_x, jauge_y, jauge_w, 6), border_radius=3)
-        if nb_total > 0:
+        if nb_total > 0 and ratio > 0:
             fill_w = int(jauge_w * ratio)
-            col_jauge = (200 + int(55 * ratio), int(180 * (1 - ratio)), 50)
-            if fill_w > 0:
-                pygame.draw.rect(self.screen, col_jauge, (jauge_x, jauge_y, fill_w, 6), border_radius=3)
+            pygame.draw.rect(self.screen, (80, 210, 110), (jauge_x, jauge_y, fill_w, 6), border_radius=3)
 
         # ── SECTION CENTRE : Statut principal ─────────────────────────────────
         cx = (300 + W - 90) // 2  # centré entre la fin de la carte ennemis et le début FPS
@@ -229,7 +232,8 @@ class VuePygame:
 # On adapte les touches selon le mode choisi !
         if type_partie == "DEMO" or type_partie is None:
             touches = [
-                "[1] Normale   [2] Lidar   [3] Cartographie",
+                "[1] Normale   [2] Lidar",
+                "[3] Cartographie",
                 "[T] Thermique",
                 "[ESPACE] Flashbang",
                 "[J] Mode Jeu  [ECHAP] Quitter"
@@ -242,7 +246,7 @@ class VuePygame:
             ]
         
         for i, texte in enumerate(touches):
-            surface_txt = self.font_label.render(texte, True, (100, 130, 170))
+            surface_txt = self.font_label.render(texte, True, (60, 220, 100))
             self.screen.blit(surface_txt, (x_touches, y_touches + i * 15))
 
 

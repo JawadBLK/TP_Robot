@@ -165,6 +165,45 @@ while running:
                 if event.key == pygame.K_t: afficher_thermique = not afficher_thermique
                 if event.key == pygame.K_SPACE: env.lancer_flashbang()
 
+            # --- CONTRÔLES SUR L'ÉCRAN DE FIN ---
+            elif env.etat_partie in ["VICTOIRE", "ECHEC"]:
+                if event.key in [pygame.K_1, pygame.K_KP1, pygame.K_2, pygame.K_KP2]:
+                    # Choix du mode
+                    if event.key in [pygame.K_1, pygame.K_KP1]:
+                        type_partie = "JEU"
+                        mode_vue = "CARTO"
+                        env.temps_debut_jeu = 2.0  # Message "Début de la partie"
+                    else:
+                        type_partie = "DEMO"
+                        mode_vue = "NORMAL"
+                        env.temps_debut_jeu = 0.0
+                    
+                    # 1. Réinitialisation des paramètres globaux
+                    env.etat_partie = "EN_COURS"
+                    temps_ecoule = 0.0
+                    env.temps_detection_robot = 0.0
+                    if hasattr(env, 'temps_effet_flash'):
+                        env.temps_effet_flash = 0.0
+                    
+                    # 2. Réinitialisation du Robot
+                    robot.x = -8.5
+                    robot.y = 0
+                    robot.orientation = 0
+                    robot.commander(v=0, omega=0)
+                    carto.surface.fill((0, 0, 0)) # On efface la carte
+                    
+                    # 3. Réinitialisation des Ennemis
+                    for e in env.ennemis:
+                        e.temps_stun = 0.0       # On les réveille
+                        e.detecte = False        # On annule l'alerte
+                        e.historique_chaleur = [] # On efface leurs traces thermiques
+                        
+                        # On les téléporte à leur tout premier waypoint (point de départ)
+                        if hasattr(e, 'waypoints') and len(e.waypoints) > 0:
+                            e.x = e.waypoints[0][0]
+                            e.y = e.waypoints[0][1]
+                            e.waypoint_index = 0
+
     # --- MISE À JOUR PHYSIQUE ---
     if env.etat_partie == "EN_COURS":
         commande = controleur.lire_commande()
@@ -245,10 +284,11 @@ while running:
             
         # Touches
         touches = [
-            "--- CONTRÔLES ---",
+            "--- CONTRÔLES  ---",
             "[FLÈCHES] : Déplacer le robot",
+            "[T] Thermique   [ESPACE] Flashbang   [ECHAP] Quitter",
+            "--- CONTRÔLES DEMO VUE ---",
             "[1] Normale   [2] Lidar   [3] Cartographie",
-            "[T] Thermique   [ESPACE] Flashbang   [ECHAP] Quitter"
         ]
         for i, ligne in enumerate(touches):
             coul = (150, 255, 150) if i > 0 else (100, 255, 100)
@@ -271,35 +311,38 @@ while running:
     # ========================================================
     # --- ÉCRAN DE FIN (VICTOIRE / ÉCHEC) ---
     # ========================================================
+    # ========================================================
+    # --- ÉCRAN DE FIN (VICTOIRE / ÉCHEC) ---
+    # ========================================================
     elif env.etat_partie != "EN_COURS":
         overlay = pygame.Surface((LARGEUR, HAUTEUR), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 200))
+        overlay.fill((0, 0, 0, 220)) # Fond légèrement plus sombre
         vue.screen.blit(overlay, (0, 0))
         
         f_titre = pygame.font.SysFont("Courier New", 50, bold=True)
-        f_info = pygame.font.SysFont("Courier New", 20)
+        f_info = pygame.font.SysFont("Courier New", 22)
+        f_choix = pygame.font.SysFont("Courier New", 20, bold=True)
         
+        # 1. Le Titre et le sous-titre
         if env.etat_partie == "VICTOIRE":
             txt = f_titre.render("VICTOIRE !", True, (50, 255, 50))
-            sub = f_info.render("Ennemis maîtrisés. Appuyez sur ECHAP.", True, (255, 255, 255))
+            sub = f_info.render("Tous les ennemis ont été neutralisés.", True, (200, 255, 200))
         else:
             txt = f_titre.render("ÉCHEC CRITIQUE", True, (255, 50, 50))
-            sub = f_info.render("Vous avez été détecté. Appuyez sur ECHAP.", True, (255, 255, 255))
+            sub = f_info.render("Vous avez été détecté.", True, (255, 200, 200))
             
-        vue.screen.blit(txt, txt.get_rect(center=(LARGEUR//2, HAUTEUR//2 - 20)))
-        vue.screen.blit(sub, sub.get_rect(center=(LARGEUR//2, HAUTEUR//2 + 30)))
-
-    # --- MESSAGE DE TRANSITION : DÉBUT DE LA PARTIE ---
-
-    if env.temps_debut_jeu > 0:
-        f_msg = pygame.font.SysFont("Courier New", 45, bold=True)
-        txt_msg = f_msg.render("DÉBUT DE LA PARTIE", True, (255, 255, 255))
+        # 2. Les nouveaux choix
+        choix1 = f_choix.render("[1] Rejouer la Mission (Mode JEU)", True, (255, 200, 50))
+        choix2 = f_choix.render("[2] Retourner au Mode DÉMO", True, (150, 200, 255))
+        choix3 = f_choix.render("[ECHAP] Quitter", True, (150, 150, 150))
         
-        # Petit fond noir derrière le texte pour la lisibilité
-        rect_msg = txt_msg.get_rect(center=(LARGEUR//2, HAUTEUR//2))
-        pygame.draw.rect(vue.screen, (0, 0, 0, 150), rect_msg.inflate(20, 20))
+        # 3. Affichage bien centré
+        vue.screen.blit(txt, txt.get_rect(center=(LARGEUR//2, HAUTEUR//2 - 60)))
+        vue.screen.blit(sub, sub.get_rect(center=(LARGEUR//2, HAUTEUR//2 - 10)))
         
-        vue.screen.blit(txt_msg, rect_msg)
+        vue.screen.blit(choix1, choix1.get_rect(center=(LARGEUR//2, HAUTEUR//2 + 50)))
+        vue.screen.blit(choix2, choix2.get_rect(center=(LARGEUR//2, HAUTEUR//2 + 90)))
+        vue.screen.blit(choix3, choix3.get_rect(center=(LARGEUR//2, HAUTEUR//2 + 130)))
 
     pygame.display.flip()
 
