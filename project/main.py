@@ -2,6 +2,7 @@ import sys
 
 import pygame
 import math
+import random
 from robot.robot_mobile import RobotMobile
 from robot.moteur import MoteurDifferentiel
 from robot.controleur import ControleurClavierPygame
@@ -127,20 +128,22 @@ while running:
                 mode_vue = "CARTO"
             elif event.key == pygame.K_t: 
                 afficher_thermique = not afficher_thermique
+            elif event.key == pygame.K_SPACE:
+                env.lancer_flashbang()
         # -------------------------------
 
-    #--- Récupérer les commandes --- 
-    commande = controleur.lire_commande()
-    env.robot.commander(**commande)
-
-    # --- Mettre à jour la physique et gérer les collisions ---
-    env.mettre_a_jour(dt)
-    temps_ecoule += dt
-
-    # --- AJOUT MISE À JOUR CAPTEURS ---
-    lidar.read(env)
-    thermique.read(env)
-    carto.mettre_a_jour(vue, lidar)
+    # --- MISE À JOUR PHYSIQUE (Seulement si en cours) ---
+    if env.etat_partie == "EN_COURS":
+        commande = controleur.lire_commande()
+        if commande:
+            robot.commander(**commande)
+            
+        env.mettre_a_jour(dt)
+        temps_ecoule += dt
+        
+        lidar.read(env)
+        thermique.read(env)
+        carto.mettre_a_jour(vue, lidar)
 
     # --- AJOUT AFFICHAGE MODULABLE ---
     if mode_vue == "CARTO":
@@ -163,7 +166,44 @@ while running:
             lidar.draw(vue)
         if afficher_thermique:
             thermique.draw(vue)
+    if hasattr(env, 'temps_effet_flash') and env.temps_effet_flash > 0:
+        # 1. Tremblement et Zoom (Bloom)
+        intensite = 15.0 
+        shake_x = int(random.uniform(-1, 1) * intensite * env.temps_effet_flash)
+        shake_y = int(random.uniform(-1, 1) * intensite * env.temps_effet_flash)
+        bloom = 1.0 + (0.05 * env.temps_effet_flash)
+        
+        capture = vue.screen.copy()
+        vue.screen.fill((0, 0, 0))
+        
+        p_surf = pygame.transform.scale(capture, (int(900 * bloom), int(650 * bloom)))
+        p_rect = p_surf.get_rect(center=(450 + shake_x, 325 + shake_y))
+        vue.screen.blit(p_surf, p_rect)
+        
+        # 2. Blanchiment (Whiteout)
+        alpha = int(255 * min(1.0, env.temps_effet_flash / 0.3))
+        white_surf = pygame.Surface((850, 650), pygame.SRCALPHA)
+        white_surf.fill((255, 255, 255, alpha))
+        vue.screen.blit(white_surf, (0, 0))
 
+    # --- ÉCRAN DE FIN ---
+    if env.etat_partie != "EN_COURS":
+        overlay = pygame.Surface((850, 650), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 200))
+        vue.screen.blit(overlay, (0, 0))
+        
+        f_titre = pygame.font.SysFont("Courier New", 50, bold=True)
+        f_info = pygame.font.SysFont("Courier New", 20)
+        
+        if env.etat_partie == "VICTOIRE":
+            txt = f_titre.render("VICTOIRE !", True, (50, 255, 50))
+            sub = f_info.render("Ennemis maîtrisés. Appuyez sur ECHAP.", True, (255, 255, 255))
+        else:
+            txt = f_titre.render("ÉCHEC CRITIQUE", True, (255, 50, 50))
+            sub = f_info.render("Vous avez été détecté. Appuyez sur ECHAP.", True, (255, 255, 255))
+            
+        vue.screen.blit(txt, txt.get_rect(center=(425, 325 - 20)))
+        vue.screen.blit(sub, sub.get_rect(center=(425, 325 + 30)))
     #image à l'écran
     pygame.display.flip()
 

@@ -10,7 +10,11 @@ class Environnement:
         self.alerte = None
         self.temps_alerte = 0
         self.props = []
-
+        
+        # --- flashbang ---
+        self.temps_detection_robot = 0.0
+        self.etat_partie = "EN_COURS"  # Peut être "VICTOIRE" ou "ECHEC"
+        self.temps_effet_flash = 0.0
     def ajouter_robot(self, robot):
         self.robot = robot
         if not hasattr(self.robot, 'rayon'):
@@ -37,7 +41,9 @@ class Environnement:
     def mettre_a_jour(self, dt):
         if not self.robot:
             return
-
+        
+        if self.temps_effet_flash > 0:
+            self.temps_effet_flash -= dt
         # Sauvegarder position AVANT mouvement
         x_old = self.robot.x
         y_old = self.robot.y
@@ -66,11 +72,16 @@ class Environnement:
                 self.robot.commander(v=0, omega=0)
                 break
 
-        # Collisions ennemis
+        # Collisions ennemis et Détection
         ennemi_detecte = False
 
         for ennemi in self.ennemis:
             ennemi.mettre_a_jour(dt)
+            
+            # --- MODIFICATION : Si l'ennemi est stun, il ne détecte rien ---
+            if hasattr(ennemi, 'temps_stun') and ennemi.temps_stun > 0:
+                continue 
+                
             ennemi.detecte = False
 
             dx = self.robot.x - ennemi.x
@@ -84,30 +95,55 @@ class Environnement:
                 if abs(angle_diff) <= ennemi.fov / 2:
                     blocked = False
                     for obs in self.obstacles:
-                        if segment_intersect_rect(
-                            ennemi.x, ennemi.y,
-                            self.robot.x, self.robot.y,
-                            obs
-                        ):
+                        if segment_intersect_rect(ennemi.x, ennemi.y, self.robot.x, self.robot.y, obs):
                             blocked = True
                             break
                     if not blocked:
                         ennemi.detecte = True
                         ennemi_detecte = True
 
+        # --- CONDITIONS DE FIN DE JEU ---
         if ennemi_detecte:
+            self.temps_detection_robot += dt
             self.alerte = "DETECTION ENNEMI"
             self.temps_alerte = 0.2
+            
+            # CONDITION D'ÉCHEC (Détecté pendant 3 secondes continues)
+            if self.temps_detection_robot >= 3.0:
+                self.etat_partie = "ECHEC"
+        else:
+            self.temps_detection_robot = 0.0 # On se cache, le compteur retombe à zéro
+
+        # CONDITION DE VICTOIRE (Tous les ennemis sont stun)
+        if len(self.ennemis) > 0 and all(hasattr(e, 'temps_stun') and e.temps_stun > 0 for e in self.ennemis):
+            self.etat_partie = "VICTOIRE"
+
+    def lancer_flashbang(self, portee=8.0):
+        """Étourdit les ennemis proches (s'il n'y a pas de mur entre eux et le robot)."""
+        if self.etat_partie != "EN_COURS":
+            return
+        self.temps_effet_flash = 0.6   # Durée de l'effet flashbang (en secondes) 
+        for ennemi in self.ennemis:
+            dist = math.hypot(self.robot.x - ennemi.x, self.robot.y - ennemi.y)
+            if dist <= portee:
+                # Vérification de la ligne de vue (le flashbang ne traverse pas les murs pleins)
+                blocked = False
+                for obs in self.obstacles:
+                    if segment_intersect_rect(ennemi.x, ennemi.y, self.robot.x, self.robot.y, obs):
+                        blocked = True
+                        break
+                if not blocked:
+                    ennemi.temps_stun = 120.0  # 2 minutes de stun !
+
 
 def segment_intersect_rect(x1, y1, x2, y2, rect):
-        steps = 20
-        for i in range(steps + 1):
-            t = i / steps
-            x = x1 + t * (x2 - x1)
-            y = y1 + t * (y2 - y1)
+    steps = 20
+    for i in range(steps + 1):
+        t = i / steps
+        x = x1 + t * (x2 - x1)
+        y = y1 + t * (y2 - y1)
 
-            if rect.collision(x, y, 0):
-                return True
+        if rect.collision(x, y, 0):
+            return True
 
-        return False
-
+    return False
