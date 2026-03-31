@@ -19,7 +19,7 @@ class VueTerminal:
 
 
 class VuePygame:
-    CONSOLE_HAUTEUR = 72  # hauteur de la bande console en pixels
+    CONSOLE_HAUTEUR = 93  # hauteur de la bande console en pixels
 
     def __init__(self, largeur=800, hauteur=600, env_largeur=30, env_hauteur=40):
         pygame.init()
@@ -127,7 +127,7 @@ class VuePygame:
         pygame.draw.rect(self.screen, couleur_fond, (x, y, w, h), border_radius=6)
         pygame.draw.rect(self.screen, couleur_bord, (x, y, w, h), 1, border_radius=6)
 
-    def dessiner_console(self, env, temps_ecoule):
+    def dessiner_console(self, env, temps_ecoule, type_partie='DEMO'):
         """Dessine la bande console en bas de l'écran."""
         y0 = self.hauteur_jeu
         W  = self.largeur
@@ -188,7 +188,7 @@ class VuePygame:
                 pygame.draw.rect(self.screen, col_jauge, (jauge_x, jauge_y, fill_w, 6), border_radius=3)
 
         # ── SECTION CENTRE : Statut principal ─────────────────────────────────
-        cx = (345 + W - 90) // 2  # centré entre la fin de la carte ennemis et le début FPS
+        cx = (300 + W - 90) // 2  # centré entre la fin de la carte ennemis et le début FPS
         if env.alerte:
             statut_txt = "! DÉTECTION !"
             statut_col = (255, 70, 70)
@@ -221,6 +221,29 @@ class VuePygame:
         self.screen.blit(label_fps,  rect_fps_label)
         self.screen.blit(valeur_fps, rect_fps_val)
 
+
+        # ── RAPPEL DES TOUCHES (Entre le statut et les FPS) ──
+        x_touches = cx + sw // 2 + 15  
+        y_touches = y0 + 8
+        
+# On adapte les touches selon le mode choisi !
+        if type_partie == "DEMO" or type_partie is None:
+            touches = [
+                "[1] Normale   [2] Lidar   [3] Cartographie",
+                "[T] Thermique",
+                "[ESPACE] Flashbang",
+                "[J] Mode Jeu  [ECHAP] Quitter"
+            ]
+        else:
+            touches = [
+                "[T] Thermique",
+                "[ESPACE] Flashbang",
+                "[ECHAP] Quitter"
+            ]
+        
+        for i, texte in enumerate(touches):
+            surface_txt = self.font_label.render(texte, True, (100, 130, 170))
+            self.screen.blit(surface_txt, (x_touches, y_touches + i * 15))
 
 
  # ──────────────────────────────────────── ENVIRONNEMENT : affichage sol, console ────────────────────────────────────────
@@ -270,10 +293,6 @@ class VuePygame:
             rect = texte.get_rect(center=(self.largeur // 2, 40))
             self.screen.blit(texte, rect)
 
-        # 8. Console en bas
-        self.dessiner_console(env, temps_ecoule)
-
-        pygame.display.flip()
 
 
  # ──────────────────────────────────────── PORTE ────────────────────────────────────────

@@ -10,6 +10,7 @@ class Environnement:
         self.alerte = None
         self.temps_alerte = 0
         self.props = []
+        self.temps_debut_jeu = 0.0  # Nouveau timer pour le message de transition
         
         # --- flashbang ---
         self.temps_detection_robot = 0.0
@@ -41,7 +42,10 @@ class Environnement:
     def mettre_a_jour(self, dt):
         if not self.robot:
             return
-        
+        # Diminuer le timer du message de transition
+        if self.temps_debut_jeu > 0:
+            self.temps_debut_jeu -= dt
+
         if self.temps_effet_flash > 0:
             self.temps_effet_flash -= dt
         # Sauvegarder position AVANT mouvement
@@ -78,7 +82,7 @@ class Environnement:
         for ennemi in self.ennemis:
             ennemi.mettre_a_jour(dt)
             
-            # --- MODIFICATION : Si l'ennemi est stun, il ne détecte rien ---
+            # --- Si l'ennemi est stun, il ne détecte rien ---
             if hasattr(ennemi, 'temps_stun') and ennemi.temps_stun > 0:
                 continue 
                 
@@ -118,11 +122,11 @@ class Environnement:
         if len(self.ennemis) > 0 and all(hasattr(e, 'temps_stun') and e.temps_stun > 0 for e in self.ennemis):
             self.etat_partie = "VICTOIRE"
 
-    def lancer_flashbang(self, portee=8.0):
+    def lancer_flashbang(self, portee=3.0):
         """Étourdit les ennemis proches (s'il n'y a pas de mur entre eux et le robot)."""
         if self.etat_partie != "EN_COURS":
             return
-        self.temps_effet_flash = 0.6   # Durée de l'effet flashbang (en secondes) 
+        self.temps_effet_flash = 0.6   # Durée de l'effet flashbang affichage (en secondes) 
         for ennemi in self.ennemis:
             dist = math.hypot(self.robot.x - ennemi.x, self.robot.y - ennemi.y)
             if dist <= portee:
