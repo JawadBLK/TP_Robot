@@ -1,24 +1,27 @@
 import math
 from robot.moteur import Moteur
-
+from robot.capteurs import Lidar
 class RobotMobile:
     _nb_robots = 0
 
     def __init__(self, x, y, orientation = 0.0, moteur=None):
+        # Initialisation des attributs de position et d'orientation
         self.x = x
         self.y = y
         self.orientation = orientation
         self.moteur = moteur
         self.rayon = 0.25
-        # 2. On utilise la méthode statique pour valider le moteur
+
+        # On utilise la méthode statique pour valider le moteur
         if self.moteur_valide(moteur):
             self.moteur = moteur
         else:
             self.moteur = None
             print("Attention : Moteur non valide ou absent.")
             
-        # 3. Incrémentation du compteur global
+        # Incrémentation du compteur global
         RobotMobile._nb_robots += 1
+        self.capteurs = []
     
     def __str__(self):
         return str((self.x, self.y, self.orientation))
@@ -60,3 +63,13 @@ class RobotMobile:
     def moteur_valide(moteur):
         # On vérifie si moteur est une instance de Moteur ou d'une de ses sous-classes
         return isinstance(moteur, Moteur)
+    
+    def ajouter_capteur(self, capteur):
+        self.capteurs.append(capteur)
+
+    def mettre_a_jour(self, dt, env=None):
+        if self.moteur is not None:
+            self.moteur.mettre_a_jour(self, dt)
+        if env is not None:
+            for capteur in self.capteurs:
+                capteur.read(env)

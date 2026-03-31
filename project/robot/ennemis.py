@@ -27,7 +27,7 @@ class Ennemi:
         # Animation
         self._temps = random.uniform(0, math.pi * 2)
         self._particules = []
-
+        self.historique_chaleur = []
     # ─── Mise à jour ────────────────────────────────────────────────────────────
 
     def mettre_a_jour(self, dt):
@@ -72,7 +72,18 @@ class Ennemi:
             p['y'] += p['vy'] * dt
             p['vie'] -= dt
         self._particules = [p for p in self._particules if p['vie'] > 0]
-
+    
+    #--- Dépôt et refroidissement de la chaleur ---
+        # 1. L'ennemi laisse une trace chaude (1.0) à sa position actuelle
+        self.historique_chaleur.append({'x': self.x, 'y': self.y, 'chaleur': 1.0})
+        
+        # 2. La chaleur se dissipe avec le temps
+        vitesse_refroidissement = 0.5 * dt # trace plus ou moins longue
+        for trace in self.historique_chaleur:
+            trace['chaleur'] -= vitesse_refroidissement
+            
+        # 3. On nettoie les traces devenues froides
+        self.historique_chaleur = [t for t in self.historique_chaleur if t['chaleur'] > 0]
     def _emettre_particule(self):
         angle_rand = random.uniform(0, 2 * math.pi)
         vitesse = random.uniform(0.3, 0.8)
