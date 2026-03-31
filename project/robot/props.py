@@ -23,11 +23,6 @@ class Props:
     _image_cache = {}
 
     def __init__(self, x, y, type_prop="caisse", angle=0):
-        """
-        x, y        : position centre en coordonnées monde
-        type_prop   : clé dans TYPES (taille + couleur de secours)
-        angle       : rotation en radians
-        """
         self.x = x
         self.y = y
         self.angle = angle

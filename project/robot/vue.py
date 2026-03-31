@@ -3,6 +3,7 @@ import pygame
 import os
 
 class VueTerminal:
+    # Cette classe est un exemple de vue très simple qui affiche les informations du robot dans la console.
     def dessiner_robot(self, robot):
         """
         Affiche les informations du robot de manière lisible dans le terminal.
@@ -19,7 +20,8 @@ class VueTerminal:
 
 
 class VuePygame:
-    CONSOLE_HAUTEUR = 72  # hauteur de la bande console en pixels
+    # Cette classe gère l'affichage graphique du robot, de l'environnement et de la console de suivi.
+    CONSOLE_HAUTEUR = 93  # hauteur de la bande console en pixels
 
     def __init__(self, largeur=800, hauteur=600, env_largeur=30, env_hauteur=40):
         pygame.init()
@@ -127,21 +129,21 @@ class VuePygame:
         pygame.draw.rect(self.screen, couleur_fond, (x, y, w, h), border_radius=6)
         pygame.draw.rect(self.screen, couleur_bord, (x, y, w, h), 1, border_radius=6)
 
-    def dessiner_console(self, env, temps_ecoule):
+    def dessiner_console(self, env, temps_ecoule, type_partie='DEMO'):
         """Dessine la bande console en bas de l'écran."""
         y0 = self.hauteur_jeu
         W  = self.largeur
         H  = self.CONSOLE_HAUTEUR
 
-        # ── Fond dégradé simulé (deux rectangles) ──────────────────────────────
+        # Fond dégradé simulé (deux rectangles)
         pygame.draw.rect(self.screen, (14, 18, 30), (0, y0,      W, H // 2))
         pygame.draw.rect(self.screen, (10, 13, 22), (0, y0 + H // 2, W, H - H // 2))
 
-        # Ligne de séparation haute avec dégradé visuel (trait + lueur)
+        # Ligne de séparation haute avec dégradé visuel 
         pygame.draw.line(self.screen, (30, 60, 110), (0, y0), (W, y0), 3)
         pygame.draw.line(self.screen, (60, 140, 255), (0, y0), (W, y0), 1)
 
-        # Ligne de séparation basse (très subtile)
+        # Ligne de séparation basse 
         pygame.draw.line(self.screen, (25, 35, 55), (0, y0 + H - 1), (W, y0 + H - 1), 1)
 
         ticks = pygame.time.get_ticks()
@@ -162,33 +164,36 @@ class VuePygame:
         self.screen.blit(label_temps, (32, y0 + 11))
         self.screen.blit(valeur_temps, (18, y0 + 26))
 
-        # ── SECTION CENTRE-GAUCHE : Compteur ennemis + jauge ──────────────────
-        nb_total   = len(env.ennemis)
-        nb_alertes = sum(1 for e in env.ennemis if e.detecte)
-        ratio      = (nb_alertes / nb_total) if nb_total > 0 else 0
+        # ── SECTION CENTRE-GAUCHE : Compteur ennemis NEUTRALISÉS ──────────────
+        nb_total = len(env.ennemis)
+        
+        # On compte ceux qui ont le chrono de stun actif (neutralisés)
+        nb_neutralises = sum(1 for e in env.ennemis if hasattr(e, 'temps_stun') and e.temps_stun > 0)
+        ratio = (nb_neutralises / nb_total) if nb_total > 0 else 0
 
-        couleur_compteur = (255, 80, 80) if nb_alertes > 0 else (80, 210, 110)
-        bord_card_enn    = (120, 30, 30) if nb_alertes > 0 else (30, 90, 50)
+        # Couleurs : gris si 0, vert si on a commencé à en neutraliser
+        couleur_compteur = (80, 210, 110) if nb_neutralises > 0 else (150, 150, 150)
+        bord_card_enn    = (30, 90, 50) if nb_neutralises > 0 else (50, 80, 120)
+        
         self._draw_card(175, y0 + 6, 170, H - 14, couleur_bord=bord_card_enn)
-
         pygame.draw.circle(self.screen, couleur_compteur, (187, y0 + 18), 4)
-        label_enn = self.font_label.render("ENNEMIS EN ALERTE", True, (70, 110, 170))
-        valeur_enn = self.font_hud.render(f"{nb_alertes} / {nb_total}", True, couleur_compteur)
+        
+        # Affichage du texte et du ratio
+        label_enn = self.font_label.render("ENNEMIS NEUTRALISÉS", True, (70, 110, 170))
+        valeur_enn = self.font_hud.render(f"{nb_neutralises} / {nb_total}", True, couleur_compteur)
         self.screen.blit(label_enn, (197, y0 + 11))
         self.screen.blit(valeur_enn, (183, y0 + 26))
 
-        # Mini jauge de menace
+        # Mini jauge de progression
         jauge_x, jauge_y = 183, y0 + H - 18
         jauge_w = 154
         pygame.draw.rect(self.screen, (30, 35, 50), (jauge_x, jauge_y, jauge_w, 6), border_radius=3)
-        if nb_total > 0:
+        if nb_total > 0 and ratio > 0:
             fill_w = int(jauge_w * ratio)
-            col_jauge = (200 + int(55 * ratio), int(180 * (1 - ratio)), 50)
-            if fill_w > 0:
-                pygame.draw.rect(self.screen, col_jauge, (jauge_x, jauge_y, fill_w, 6), border_radius=3)
+            pygame.draw.rect(self.screen, (80, 210, 110), (jauge_x, jauge_y, fill_w, 6), border_radius=3)
 
         # ── SECTION CENTRE : Statut principal ─────────────────────────────────
-        cx = (345 + W - 90) // 2  # centré entre la fin de la carte ennemis et le début FPS
+        cx = (300 + W - 90) // 2  # centré entre la fin de la carte ennemis et le début FPS
         if env.alerte:
             statut_txt = "! DÉTECTION !"
             statut_col = (255, 70, 70)
@@ -222,6 +227,30 @@ class VuePygame:
         self.screen.blit(valeur_fps, rect_fps_val)
 
 
+        # ── RAPPEL DES TOUCHES (Entre le statut et les FPS) ──
+        x_touches = cx + sw // 2 + 15  
+        y_touches = y0 + 8
+        
+        # On adapte les touches selon le mode choisi !
+        if type_partie == "DEMO" or type_partie is None:
+            touches = [
+                "[1] Normale   [2] Lidar",
+                "[3] Cartographie",
+                "[T] Thermique",
+                "[ESPACE] Flashbang",
+                "[J] Mode Jeu  [ECHAP] Quitter"
+            ]
+        else:
+            touches = [
+                "[T] Thermique",
+                "[ESPACE] Flashbang",
+                "[ECHAP] Quitter"
+            ]
+        
+        for i, texte in enumerate(touches):
+            surface_txt = self.font_label.render(texte, True, (60, 220, 100))
+            self.screen.blit(surface_txt, (x_touches, y_touches + i * 15))
+
 
  # ──────────────────────────────────────── ENVIRONNEMENT : affichage sol, console ────────────────────────────────────────
     def dessiner_environnement(self, env, temps_ecoule=0.0):
@@ -234,7 +263,7 @@ class VuePygame:
                 for y in range(0, self.hauteur, h_texture):
                     self.screen.blit(self.texture_sol, (x, y))
         else:
-            #  Si l'image sol.png n'est pas là, on met un fond vert uni
+            #  Si l'image sol.png n'est pas là, on met un fond marron uni
             self.screen.fill((120,80,50))
 
         # 2. FOND INTÉRIEUR (Fond Beige)
@@ -270,10 +299,6 @@ class VuePygame:
             rect = texte.get_rect(center=(self.largeur // 2, 40))
             self.screen.blit(texte, rect)
 
-        # 8. Console en bas
-        self.dessiner_console(env, temps_ecoule)
-
-        pygame.display.flip()
 
 
  # ──────────────────────────────────────── PORTE ────────────────────────────────────────

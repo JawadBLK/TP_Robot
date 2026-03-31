@@ -2,6 +2,7 @@ import math
 from robot.obstacle import ObstacleRectangulaire, ObstaclePorte
 
 class WallSegment:
+    """Représente un segment de mur défini par deux points (x1, y1) et (x2, y2), avec une épaisseur et un matériau."""
     def __init__(self, x1, y1, x2, y2, thickness=0.4, materiau="beton"):
         self.x1 = x1
         self.y1 = y1
