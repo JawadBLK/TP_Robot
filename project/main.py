@@ -1,3 +1,4 @@
+# ── Imports ──────────────────────────────────────────
 import sys
 import pygame
 import math
@@ -41,10 +42,10 @@ carto = Cartographie(LARGEUR, HAUTEUR)
 afficher_thermique = False
 mode_vue = "NORMAL"
 
-# ── 3. CONSTRUCTION DU MONDE ──────────────────────────────────────────
+# ── 3. CONSTRUCTION DU MONDE  ──────────────────────────────────────────
 env.ajouter_robot(robot)
 build_plan(env)
-
+# ── 3.1 Ennemis avec leur tour de garde ───────────────────────────────────────────────────────
 ennemi1 = Ennemi(-7, -2, waypoints=[(-7, -2), (-7, -4), (-3, -4), (-3, -4), (-3, -2), (-5, -2), (-5, -4), (-7, -4)])
 ennemi2 = Ennemi(3, -3,waypoints=[(3, -3), (3, -4), (-1, -4), (-1, -3), (3, -3)])
 ennemi3 = Ennemi(-7, 2,waypoints=[(-7, 2), (-7, 4.2), (-3, 4.2), (-3, 2), (-3, 2), (-5, 2), (-5, 3), (-7, 2)])
@@ -96,10 +97,11 @@ env.ajouter_prop(Props(7,  -4.5, "armoire"))
 env.ajouter_prop(Props(5,  -4.5, "lampe"))
 env.ajouter_prop(Props(7,  -2.5, "tableau"))
 
-print("Nombre d'obstacles :", len(env.obstacles))
-print(hasattr(env, "alerte"))
+#print("Nombre d'obstacles :", len(env.obstacles))
+#print(hasattr(env, "alerte"))
+
 # ── 4. BOUCLE DE JEU ──────────────────────────────────────────────────
-fps = 60
+fps = 100
 running = True
 temps_ecoule = 0.0
 
@@ -119,7 +121,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
             
-            # --- CHOIX DANS LE MENU ---
+            # --- CHOIX DANS LE MENU ACCUEIL ---
             elif env.etat_partie == "MENU":
                 # Mode DÉMO (Touche 1 ou Pavé numérique 1)
                 if event.key == pygame.K_1 or event.key == pygame.K_KP1:
@@ -231,8 +233,9 @@ while running:
         if mode_vue == "LIDAR": lidar.draw(vue)
         if afficher_thermique: thermique.draw(vue)
 
-    # --- EFFET FLASHBANG ---
-    if hasattr(env, 'temps_effet_flash') and env.temps_effet_flash > 0:
+    # --- EFFET FLASHBANG AFFICHAGE ---
+    if hasattr(env, 'temps_effet_flash') and env.temps_effet_flash > 0: 
+        # Effet de tremblement de l'écran + bloom (éclaircissement temporaire)
         intensite = 15.0 
         shake_x = int(random.uniform(-1, 1) * intensite * env.temps_effet_flash)
         shake_y = int(random.uniform(-1, 1) * intensite * env.temps_effet_flash)
@@ -240,7 +243,7 @@ while running:
         
         capture = vue.screen.copy()
         vue.screen.fill((0, 0, 0))
-        
+            # On dessine la capture agrandie et décalée pour créer l'effet de flash
         p_surf = pygame.transform.scale(capture, (int(LARGEUR * bloom), int(HAUTEUR * bloom)))
         p_rect = p_surf.get_rect(center=(LARGEUR//2 + shake_x, HAUTEUR//2 + shake_y))
         vue.screen.blit(p_surf, p_rect)
@@ -253,6 +256,9 @@ while running:
     # --- INTERFACE HUD ---
     if env.etat_partie != "MENU":
         vue.dessiner_console(env, temps_ecoule, type_partie=type_partie)
+
+    
+  # ── 5. ECRANS ────────────────────────────────────────────────
 
     # ========================================================
     # --- ÉCRAN D'ACCUEIL (MENU) ---
@@ -275,7 +281,7 @@ while running:
             "--- RÈGLES DE LA MISSION ---",
             "Retrouvez les ennemis à l'aide des différentes vues.",
             "Neutralisez tous les ennemis en même temps pour la victoire.",
-            "Attention : si vous êtes détecté plus de 1.5s, la mission échoue."
+            "Attention : si vous êtes détecté plus de 3s, la mission échoue."
         ]
         for i, ligne in enumerate(regles):
             coul = (200, 220, 255) if i > 0 else (100, 150, 255)
@@ -311,9 +317,6 @@ while running:
     # ========================================================
     # --- ÉCRAN DE FIN (VICTOIRE / ÉCHEC) ---
     # ========================================================
-    # ========================================================
-    # --- ÉCRAN DE FIN (VICTOIRE / ÉCHEC) ---
-    # ========================================================
     elif env.etat_partie != "EN_COURS":
         overlay = pygame.Surface((LARGEUR, HAUTEUR), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 220)) # Fond légèrement plus sombre
@@ -345,6 +348,6 @@ while running:
         vue.screen.blit(choix3, choix3.get_rect(center=(LARGEUR//2, HAUTEUR//2 + 130)))
 
     pygame.display.flip()
-
+    
 pygame.quit()
 sys.exit()

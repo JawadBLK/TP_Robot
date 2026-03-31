@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from math import cos, sin
 class Moteur(ABC):
+    """Classe de base pour les moteurs de robot. Définit l'interface commune pour tous les types de moteurs."""
     @abstractmethod
     def commander(self, *args):
         pass
@@ -10,6 +11,7 @@ class Moteur(ABC):
 
 
 class MoteurDifferentiel(Moteur):
+    """Moteur différentiel. Permet de commander une vitesse linéaire et une vitesse angulaire."""
     def __init__(self, v=0.0, omega=0.0):
         self.v = v # vitesse linaire
         self.omega = omega # vitesse angulaire
@@ -28,6 +30,7 @@ class MoteurDifferentiel(Moteur):
     
 
 class MoteurOmnidirectionnel(Moteur):
+    """Moteur omnidirectionnel. Permet de commander une vitesse linéaire avant, une vitesse latérale, et une vitesse angulaire."""
     def __init__(self, vx=0.0, vy=0.0, omega=0.0):
         self.vx = vx # vitesse avant
         self.vy = vy # vitesse latrale

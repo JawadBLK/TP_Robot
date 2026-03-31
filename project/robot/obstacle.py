@@ -3,6 +3,7 @@ import pygame
 from abc import ABC, abstractmethod
 
 class Obstacle(ABC):
+    """Classe abstraite pour les obstacles, avec des méthodes à implémenter pour la collision et le dessin."""
     @abstractmethod
     def collision(self, x, y, rayon_robot):
         pass
@@ -11,6 +12,7 @@ class Obstacle(ABC):
         pass
 
 class ObstacleRectangulaire(Obstacle):
+    """Représente un obstacle rectangulaire, comme un mur ou une cloison."""
     def __init__(self, x, y, largeur, hauteur, materiau="beton"):
         self.x = x
         self.y = y
@@ -19,12 +21,14 @@ class ObstacleRectangulaire(Obstacle):
         self.materiau = materiau
 
     def collision(self, x_robot, y_robot, rayon_robot):
+        # On trouve le point de l'obstacle le plus proche du robot
         x_proche = max(self.x - self.largeur/2, min(x_robot, self.x + self.largeur/2))
         y_proche = max(self.y - self.hauteur/2, min(y_robot, self.y + self.hauteur/2))
         distance = math.sqrt((x_robot - x_proche)**2 + (y_robot - y_proche)**2)
         return distance <= rayon_robot
 
     def dessiner(self, vue):
+        # On convertit les coordonnées du centre de l'obstacle en pixels pour Pygame
         px, py = vue.convertir_coordonnees(self.x, self.y)
         largeur_px = int(self.largeur * vue.scale)
         hauteur_px = int(self.hauteur * vue.scale)
@@ -48,7 +52,7 @@ class ObstacleRectangulaire(Obstacle):
 
     # Méthode d'intersection pour le Lidar
     def intersection(self, ox, oy, dx, dy, max_range):
-        """Calcule l'intersection avec un rayon (Lidar) basé sur le document sensors iCampus."""
+        #Calcule l'intersection avec un rayon (Lidar)
         t_min = 0.0
         t_max = max_range
         
@@ -77,6 +81,7 @@ class ObstacleRectangulaire(Obstacle):
         return None
     
 class ObstaclePorte(Obstacle):
+    """Représente une porte, qui est un segment de ligne avec une certaine largeur et orientation."""
     def __init__(self, x, y, largeur, angle_rad=0):
         self.x = x
         self.y = y
@@ -113,9 +118,10 @@ class ObstaclePorte(Obstacle):
 
     def dessiner(self, vue):
         vue.dessiner_porte(self.x, self.y, self.angle_rad, self.largeur)
+        
      # Méthode d'intersection pour le Lidar   
     def intersection(self, ox, oy, dx, dy, max_range):
-        """Calcule l'intersection avec un rayon comme un segment paramétrique."""
+        #Calcule l'intersection avec un rayon comme un segment paramétrique.
         ax, ay = self.x, self.y
         bx, by = self.fin_x, self.fin_y
         

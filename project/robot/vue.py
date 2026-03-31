@@ -3,6 +3,7 @@ import pygame
 import os
 
 class VueTerminal:
+    # Cette classe est un exemple de vue très simple qui affiche les informations du robot dans la console.
     def dessiner_robot(self, robot):
         """
         Affiche les informations du robot de manière lisible dans le terminal.
@@ -19,6 +20,7 @@ class VueTerminal:
 
 
 class VuePygame:
+    # Cette classe gère l'affichage graphique du robot, de l'environnement et de la console de suivi.
     CONSOLE_HAUTEUR = 93  # hauteur de la bande console en pixels
 
     def __init__(self, largeur=800, hauteur=600, env_largeur=30, env_hauteur=40):
@@ -133,15 +135,15 @@ class VuePygame:
         W  = self.largeur
         H  = self.CONSOLE_HAUTEUR
 
-        # ── Fond dégradé simulé (deux rectangles) ──────────────────────────────
+        # Fond dégradé simulé (deux rectangles)
         pygame.draw.rect(self.screen, (14, 18, 30), (0, y0,      W, H // 2))
         pygame.draw.rect(self.screen, (10, 13, 22), (0, y0 + H // 2, W, H - H // 2))
 
-        # Ligne de séparation haute avec dégradé visuel (trait + lueur)
+        # Ligne de séparation haute avec dégradé visuel 
         pygame.draw.line(self.screen, (30, 60, 110), (0, y0), (W, y0), 3)
         pygame.draw.line(self.screen, (60, 140, 255), (0, y0), (W, y0), 1)
 
-        # Ligne de séparation basse (très subtile)
+        # Ligne de séparation basse 
         pygame.draw.line(self.screen, (25, 35, 55), (0, y0 + H - 1), (W, y0 + H - 1), 1)
 
         ticks = pygame.time.get_ticks()
@@ -176,7 +178,7 @@ class VuePygame:
         self._draw_card(175, y0 + 6, 170, H - 14, couleur_bord=bord_card_enn)
         pygame.draw.circle(self.screen, couleur_compteur, (187, y0 + 18), 4)
         
-        # Changement du texte
+        # Affichage du texte et du ratio
         label_enn = self.font_label.render("ENNEMIS NEUTRALISÉS", True, (70, 110, 170))
         valeur_enn = self.font_hud.render(f"{nb_neutralises} / {nb_total}", True, couleur_compteur)
         self.screen.blit(label_enn, (197, y0 + 11))
@@ -229,7 +231,7 @@ class VuePygame:
         x_touches = cx + sw // 2 + 15  
         y_touches = y0 + 8
         
-# On adapte les touches selon le mode choisi !
+        # On adapte les touches selon le mode choisi !
         if type_partie == "DEMO" or type_partie is None:
             touches = [
                 "[1] Normale   [2] Lidar",
@@ -261,7 +263,7 @@ class VuePygame:
                 for y in range(0, self.hauteur, h_texture):
                     self.screen.blit(self.texture_sol, (x, y))
         else:
-            #  Si l'image sol.png n'est pas là, on met un fond vert uni
+            #  Si l'image sol.png n'est pas là, on met un fond marron uni
             self.screen.fill((120,80,50))
 
         # 2. FOND INTÉRIEUR (Fond Beige)
