@@ -9,6 +9,7 @@ class Capteur(ABC):
     def draw(self, vue): pass
 
 class Lidar(Capteur):
+    ''' Capteur de distance simulant un LIDAR à 180° avec un nombre configurable de rayons. '''
     def __init__(self, robot, nb_rayons=180, portee_max=6.0):
         self.robot = robot
         self.nb_rayons = nb_rayons
@@ -48,7 +49,7 @@ class Lidar(Capteur):
                     if dist is not None and dist < dist_min:
                         dist_min = dist
                         
-            # Calcul du point d'impact
+            # --- 3. Calcul du point d'impact pour le dessin ---
             ix = self.robot.x + dist_min * dx
             iy = self.robot.y + dist_min * dy
             self.mesures.append((angle, dist_min, ix, iy))
@@ -56,6 +57,7 @@ class Lidar(Capteur):
         return self.mesures
 
     def draw(self, vue):
+        #--- Dessiner les rayons du LIDAR ---
         px_r, py_r = vue.convertir_coordonnees(self.robot.x, self.robot.y)
         for angle, dist, ix, iy in self.mesures:
             px_i, py_i = vue.convertir_coordonnees(ix, iy)
@@ -64,12 +66,16 @@ class Lidar(Capteur):
 
 
 class CapteurThermique(Capteur):
+    """ Capteur thermique simulant la détection de traces de chaleur laissées par les ennemis.
+        Les traces de chaleur sont diffusées sur une petite zone autour de leur position d'origine,
+        avec une intensité décroissante. Les couleurs sont nettes (pas de gradient fluide) pour un effet "matrice pixelisée"."""
     def __init__(self, robot, portee=15.0):
         self.robot = robot
         self.portee = portee
         self.mesures_thermiques = []
 
     def read(self, env):
+        # On collecte les traces de chaleur de tous les ennemis dans la portée du capteur
         self.mesures_thermiques = []
         for ennemi in env.ennemis:
             dist = math.hypot(self.robot.x - ennemi.x, self.robot.y - ennemi.y)
@@ -85,7 +91,7 @@ class CapteurThermique(Capteur):
         rayon_diffusion = 0.8  
         
         grille_chaleur = {}
-        
+        # On diffuse la chaleur de chaque trace sur une zone circulaire autour de sa position, avec une intensité décroissante
         for trace in self.mesures_thermiques:
             cx, cy = trace['x'], trace['y']
             chaleur_source = trace['chaleur']

@@ -1,7 +1,9 @@
 import math
 from robot.moteur import Moteur
 from robot.capteurs import Lidar
+
 class RobotMobile:
+    """Classe représentant un robot mobile avec des capacités de mouvement et de perception."""
     _nb_robots = 0
 
     def __init__(self, x, y, orientation = 0.0, moteur=None):
@@ -54,9 +56,7 @@ class RobotMobile:
 
     @classmethod
     def nombre_robots(cls) -> int:
-        """
-        Retourne le nombre total de robots crees.
-        """
+        #Retourne le nombre total de robots crees.
         return cls._nb_robots
 
     @staticmethod

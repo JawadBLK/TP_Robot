@@ -3,11 +3,13 @@ import pygame
 import random
 
 class Ennemi:
+    """ Classe représentant un ennemi patrouillant dans la salle.
+    Il suit une ronde définie par des waypoints, et peut détecter le robot si celui-ci entre dans son champ de vision. 
+    Il laisse aussi une trace de chaleur derrière lui pour que le robot puisse suivre sa piste."""
 
     def __init__(self, x, y, waypoints, taille=0.2, angle=0):
         """
         waypoints : liste de (x, y) définissant la ronde dans la salle.
-                    Exemple : [(1,1), (3,1), (3,3), (1,3)] pour faire un carré. 
         """
         self.x = x
         self.y = y
@@ -24,20 +26,23 @@ class Ennemi:
         self.waypoint_index = 0
         self.seuil_arrivee = 0.1    # distance pour considérer le waypoint atteint
 
-        # Animation
+        # Variables pour les particules d'alerte
         self._temps = random.uniform(0, math.pi * 2)
         self._particules = []
         self.historique_chaleur = []
         self.temps_stun = 0.0  # Chronomètre d'étourdissement
-    # ─── Mise à jour ────────────────────────────────────────────────────────────
+
+    # ─── Mise à jour  ────────────────────────────────────────────────────────────
 
     def mettre_a_jour(self, dt):
         self._temps += dt
+
         # --- GESTION DU STUN (FLASHBANG) ---
         if self.temps_stun > 0:
             self.temps_stun -= dt
             self.detecte = False
             return
+        
         # Waypoint cible
         cible = self.waypoints[self.waypoint_index]
         dx = cible[0] - self.x
@@ -69,7 +74,7 @@ class Ennemi:
             self.x += (dx / distance) * self.vitesse * dt
             self.y += (dy / distance) * self.vitesse * dt
 
-        # Particules d'alerte
+        # Particules d'alerte aléatoires
         if self.detecte and random.random() < 0.3:
             self._emettre_particule()
         for p in self._particules:
@@ -90,6 +95,7 @@ class Ennemi:
         # 3. On nettoie les traces devenues froides
         self.historique_chaleur = [t for t in self.historique_chaleur if t['chaleur'] > 0]
 
+    # ─── Effet de flashbang (étourdissement) ────────────────────────────────────────────
     def _emettre_particule(self):
         angle_rand = random.uniform(0, 2 * math.pi)
         vitesse = random.uniform(0.3, 0.8)
@@ -102,7 +108,7 @@ class Ennemi:
             'r': random.uniform(0.03, 0.07),
         })
 
-    # ─── Dessin ─────────────────────────────────────────────
+    # ─── Aspect du personnage ─────────────────────────────────────────────
 
     def dessiner(self, vue):
         self._dessiner_cone_vision(vue)
@@ -111,7 +117,9 @@ class Ennemi:
         self._dessiner_oeil(vue)
         self._dessiner_particules(vue)
 
+    #Dessiner le cône de vision avec un dégradé de rouge plus intense vers l'avant. Si l'ennemi est étourdi, ne pas dessiner le cône du tout.
     def _dessiner_cone_vision(self, vue):
+        # Si l'ennemi est étourdi, on ne dessine pas son cône de vision
         if self.temps_stun > 0:
             return  # Pas de vision si étourdi !
         px, py = vue.convertir_coordonnees(self.x, self.y)
@@ -140,6 +148,7 @@ class Ennemi:
             pygame.draw.line(surf, (*base_color, border_alpha), (px, py), (epx, epy), 1)
         vue.screen.blit(surf, (0, 0))
 
+    # Dessiner une aura rouge pulsante autour de l'ennemi lorsqu'il a détecté le robot, ou verte s'il ne l'a pas détecté.
     def _dessiner_aura(self, vue):
         px, py = vue.convertir_coordonnees(self.x, self.y)
         size = self.taille * vue.scale
@@ -153,6 +162,7 @@ class Ennemi:
                 pygame.draw.circle(surf, (*aura_color, alpha), (int(px), int(py)), r)
         vue.screen.blit(surf, (0, 0))
 
+    # Dessiner le corps de l'ennemi avec une forme polygonale.
     def _dessiner_corps(self, vue):
         px, py = vue.convertir_coordonnees(self.x, self.y)
         size = self.taille * vue.scale
@@ -160,9 +170,9 @@ class Ennemi:
         s = size * (1 + pulse)
         nb = 6
         points_outer = [(px + s * math.cos(self.angle + i * 2*math.pi/nb),
-                         py + s * math.sin(self.angle + i * 2*math.pi/nb)) for i in range(nb)]
+                         py + s * math.sin(self.angle + i * 2*math.pi/nb)) for i in range(nb)] # hexagone orienté dans la direction de l'angle
         points_inner = [(px + s*.55 * math.cos(self.angle + i * 2*math.pi/nb),
-                         py + s*.55 * math.sin(self.angle + i * 2*math.pi/nb)) for i in range(nb)]
+                         py + s*.55 * math.sin(self.angle + i * 2*math.pi/nb)) for i in range(nb)] # hexagone intérieur plus petit pour faire une bordure
         if self.detecte:
             fill_outer, fill_inner, border_col = (200,40,40), (255,100,100), (255,200,200)
         else:
@@ -176,7 +186,8 @@ class Ennemi:
         surf = pygame.Surface(vue.screen.get_size(), pygame.SRCALPHA)
         pygame.draw.circle(surf, (255,255,255,80), (int(rx), int(ry)), max(1, int(s*0.18)))
         vue.screen.blit(surf, (0, 0))
-
+    
+    # Dessiner un œil avec un iris rouge si l'ennemi a détecté le robot, ou bleu sinon.
     def _dessiner_oeil(self, vue):
         px, py = vue.convertir_coordonnees(self.x, self.y)
         size = self.taille * vue.scale
@@ -196,6 +207,7 @@ class Ennemi:
         vue.screen.blit(surf, (0, 0))
         pygame.draw.circle(vue.screen, (30,30,30), (int(px), int(py)), r_blanc, 1)
 
+    # Dessiner les particules d'alerte rouges de l'ennemi lorsqu'il a détecté le robot (les petits points derrière lui).
     def _dessiner_particules(self, vue):
         surf = pygame.Surface(vue.screen.get_size(), pygame.SRCALPHA)
         for p in self._particules:
