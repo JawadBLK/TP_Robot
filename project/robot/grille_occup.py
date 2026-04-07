@@ -94,70 +94,45 @@ class GrilleOccupation:
 
     def dessiner(self, vue, alpha_fond: int = 220):
         """
-        Brouillard de guerre : toute la fenêtre est noire au départ.
-        Le Lidar révèle progressivement les zones explorées.
+        Brouillard de guerre stable sans clignotement.
 
-        Couleurs :
-          - Inconnu  → noir opaque  (jamais vu)
-          - Libre    → transparent  (zone révélée)
-          - Occupé   → rouge foncé  (mur/obstacle détecté)
+        Technique : on dessine un calque noir pleine fenêtre, puis on
+        perce des rectangles transparents (blend ERASE) aux endroits
+        révélés par le Lidar. Les murs détectés s appuient en rouge.
         """
-        # 1. Recouvrir toute la fenêtre en noir opaque
-        fog = pygame.Surface((vue.largeur, vue.hauteur_jeu), pygame.SRCALPHA)
-        fog.fill((0, 0, 0, 255))
+        # Surface de brouillard pleine fenêtre, recréée à chaque frame
+        # (légère mais stable — pas de clignotement)
+        fog = pygame.Surface((vue.largeur, vue.hauteur_jeu))
+        fog.fill((0, 0, 0))
+        fog.set_colorkey(None)
+
+        g = self._GrilleOccupation__grid
+        cell_px = max(1, int(self.resolution * vue.scale))
+
+        # Percer les trous pour les cellules LIBRES
+        libre_ixs, libre_iys = np.where(g == self.LIBRE)
+        for ix, iy in zip(libre_ixs, libre_iys):
+            wx = self.origin_x + (ix + 0.5) * self.resolution
+            wy = self.origin_y + (iy + 0.5) * self.resolution
+            px, py = vue.convertir_coordonnees(wx, wy)
+            # On efface ce pixel du brouillard en le rendant transparent
+            pygame.draw.rect(fog, (1, 1, 1),
+                             (px - cell_px // 2, py - cell_px // 2,
+                              cell_px, cell_px))
+
+        # Rendre la couleur (1,1,1) transparente = trous dans le fog
+        fog.set_colorkey((1, 1, 1))
+
+        # Blit du brouillard (les trous laissent voir le fond en dessous)
         vue.screen.blit(fog, (0, 0))
 
-        # 2. Creuser des trous transparents dans le brouillard
-        #    pour les cellules révélées par le Lidar
-        if self._dirty:
-            self._surface_cache = self._construire_surface(vue, alpha_fond)
-            self._dirty = False
-
-        if self._surface_cache is None:
-            return
-
-        px0, py0 = vue.convertir_coordonnees(
-            self.origin_x,
-            self.origin_y + self.hauteur_m,
-        )
-        vue.screen.blit(self._surface_cache, (px0, py0))
-
-    def _construire_surface(self, vue, alpha_fond: int) -> pygame.Surface:
-        cell_px = max(1, int(self.resolution * vue.scale))
-        W = self.nx * cell_px
-        H = self.ny * cell_px
-
-        # Grille RGBA via numpy : construction vectorisée
-        g = self._GrilleOccupation__grid  # accès au nom mangled
-
-        # Tableaux RGBA (nx, ny, 4) — initialisation noire opaque (inconnu)
-        rgba = np.zeros((self.nx, self.ny, 4), dtype=np.uint8)
-        rgba[:, :, 3] = 255  # tout opaque par défaut (brouillard noir)
-
-        # Cellules LIBRES → transparentes (révélées, on voit le fond)
-        libre = (g == self.LIBRE)
-        rgba[libre, 0] = 0
-        rgba[libre, 1] = 0
-        rgba[libre, 2] = 0
-        rgba[libre, 3] = 0   # transparent = zone découverte
-
-        # Cellules OCCUPÉES → rouge foncé opaque (obstacle détecté)
-        occupe = (g == self.OCCUPE)
-        rgba[occupe, 0] = 160
-        rgba[occupe, 1] = 30
-        rgba[occupe, 2] = 30
-        rgba[occupe, 3] = alpha_fond
-
-        # Construction surface : make_surface attend RGB puis on injecte alpha
-        surf_rgb = pygame.surfarray.make_surface(rgba[:, :, :3])
-        alpha_surf = surf_rgb.convert_alpha()
-        pxa = pygame.surfarray.pixels_alpha(alpha_surf)
-        pxa[:, :] = rgba[:, :, 3]
-        del pxa
-
-        # Inverser Y (Pygame Y=0 en haut, monde Y=0 en bas)
-        alpha_surf = pygame.transform.flip(alpha_surf, False, True)
-
-        # Zoom vers la taille écran
-        surf_big = pygame.transform.scale(alpha_surf, (W, H))
-        return surf_big
+        # Dessiner les murs détectés PAR-DESSUS le brouillard en rouge
+        if alpha_fond > 0:
+            occupe_ixs, occupe_iys = np.where(g == self.OCCUPE)
+            for ix, iy in zip(occupe_ixs, occupe_iys):
+                wx = self.origin_x + (ix + 0.5) * self.resolution
+                wy = self.origin_y + (iy + 0.5) * self.resolution
+                px, py = vue.convertir_coordonnees(wx, wy)
+                pygame.draw.rect(vue.screen, (160, 30, 30),
+                                 (px - cell_px // 2, py - cell_px // 2,
+                                  cell_px, cell_px))
