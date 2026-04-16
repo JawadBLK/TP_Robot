@@ -1,12 +1,12 @@
 # 🤖🪖 Jeu de Détection d'ennemis militaires 🤖🪖
------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 ##  Description du projet
 Ce projet est un simulateur 2D interactif de robot mobile développé en Python. Il a été réalisé dans le cadre du cours de **Programmation Orientée Objet (POO) à destination de la robotique** (Master Data et IA -  Université Catholique de Lille, Année 2025-2026). 
 
 Ce simulateur a pour objectif de détecter des ennemis.
 Le robot doit aller à la recherche des ennemis, il connait le nombre d'ennemis dès le début. Les ennemis sont identifiables selon un gradient de couleur visible grâce à un capteur thermique.
 
-----------------------------------------------------------  FONCTIONNALITES -----------------------------------------------------------------------
+----------------------------------------------------------  FONCTIONNALITES -----------------------------------------
 
 Le simulateur intègre les fonctionnalités suivantes :
 * Moteur Physique & Cinématique : Simulation des déplacements d'un robot (moteur différentiel ou omnidirectionnel) calculés de manière indépendante.
@@ -17,13 +17,13 @@ Le simulateur intègre les fonctionnalités suivantes :
 * Contrôle Utilisateur : Pilotage fluide du robot au clavier grâce à un contrôleur dédié.
 
   
------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
 ##  Membres du Groupe
 * Marie Willeman
 * Quentin Rajski
 * Jawad Belkaid
 
-----------------------------------------------------------  LANCEMENT DU SIMULATEUR ---------------------------------------------------------------
+------------------------------------------  LANCEMENT DU SIMULATEUR -----------------------------------------------
 
 ## Dépendances nécessaires
 Pour faire tourner ce projet, vous aurez besoin de Python 3.x et de la bibliothèque Pygame.
