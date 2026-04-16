@@ -16,7 +16,10 @@ Le simulateur intègre les fonctionnalités suivantes :
 * Rendu Graphique : Visualisation en temps réel via la bibliothèque `pygame`, avec un suivi du robot (représenté par un visuel personnalisé de R2D2).
 * Contrôle Utilisateur : Pilotage fluide du robot au clavier grâce à un contrôleur dédié.
 
-  
+### Référencement documentation technique : 
+Digramme UML : [DiagrammeUML_ROS.png](https://github.com/JawadBLK/TP_Robot/blob/ceca567c7be381bbc7af6dbc489ec83815f895f9/DiagrammeUML_ROS.png)
+Documentation technique : https://github.com/JawadBLK/TP_Robot/blob/ceca567c7be381bbc7af6dbc489ec83815f895f9/doc_technique_ROS.pdf
+
 -------------------------------------------------------------------------------------------------------------------
 ##  Membres du Groupe
 * Marie Willeman
