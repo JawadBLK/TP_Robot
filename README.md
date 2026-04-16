@@ -17,7 +17,7 @@ Le simulateur intègre les fonctionnalités suivantes :
 * Contrôle Utilisateur : Pilotage fluide du robot au clavier grâce à un contrôleur dédié.
 
 ### Référencement documentation technique : 
-Digramme UML : [DiagrammeUML_ROS.png](https://github.com/JawadBLK/TP_Robot/blob/ceca567c7be381bbc7af6dbc489ec83815f895f9/DiagrammeUML_ROS.png)
+Digramme UML : [DiagrammeUML_ROS.png](https://github.com/JawadBLK/TP_Robot/blob/ceca567c7be381bbc7af6dbc489ec83815f895f9/DiagrammeUML_ROS.png)  
 Documentation technique : https://github.com/JawadBLK/TP_Robot/blob/ceca567c7be381bbc7af6dbc489ec83815f895f9/doc_technique_ROS.pdf
 
 -------------------------------------------------------------------------------------------------------------------
